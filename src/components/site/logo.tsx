@@ -7,10 +7,14 @@ import { cn } from "@/lib/utils";
 /**
  * Brand lockup built on the real assets in `public/brand`.
  *
- * `logo-mark.png` is the laurel-and-car emblem cropped out of the medallion —
- * legible down to ~28px in the header. The wordmark beside it is live text in
- * the brand serif, so it stays crisp at any size and is readable by assistive
- * technology rather than being trapped inside a bitmap.
+ * `logo-mark.png` is the laurel-and-car emblem, cut out of the medallion by
+ * `scripts/prepare-logo.mjs` and masked to its own oval. It is deliberately
+ * not square — a square crop reaches into the medallion's ring and drags
+ * arcs of it in — so it is sized by height and its width follows.
+ *
+ * The wordmark beside it is live text in the brand serif, so it stays crisp at
+ * any size and is readable by assistive technology rather than being trapped
+ * inside a bitmap.
  *
  * `logo-seal.png` is the complete medallion, used where there is room for it.
  */
@@ -62,10 +66,13 @@ export function Logo({
         alt=""
         aria-hidden="true"
         width={256}
-        height={256}
+        height={215}
         className={cn(
-          "shrink-0 transition-transform duration-500 group-hover:scale-105",
-          variant === "mark" ? "size-10" : "size-11",
+          // `w-auto` with a fixed height lets the emblem keep its own
+          // proportions. Without it the `width` attribute decides the box and
+          // the image is squashed.
+          "w-auto shrink-0 transition-transform duration-500 group-hover:scale-105",
+          variant === "mark" ? "h-9" : "h-11",
         )}
         priority
       />

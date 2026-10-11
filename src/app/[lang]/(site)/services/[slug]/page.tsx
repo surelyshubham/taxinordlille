@@ -10,6 +10,8 @@ import {
   ArtGare,
   ArtRoute,
 } from "@/components/brand/artwork";
+import { Photo, PhotoScrim } from "@/components/site/photo";
+import type { PhotoName } from "@/lib/photos";
 import { Button } from "@/components/ui/button";
 import { Section } from "@/components/ui/primitives";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
@@ -179,6 +181,19 @@ const SCENES: Record<ServiceType, typeof ArtGare> = {
   longue_distance: ArtRoute,
 };
 
+/**
+ * Where a real photograph of the place exists, it is used in place of the
+ * engraving — a visitor choosing a station transfer is better served by
+ * seeing the hall they will be collected from than a drawing of a train.
+ *
+ * Long-distance journeys have no such place, so that page keeps its artwork
+ * rather than borrowing an unrelated picture of Lille.
+ */
+const SCENE_PHOTOS: Partial<Record<ServiceType, PhotoName>> = {
+  gare: "gare-flandres-hall",
+  aeroport: "lesquin-interieur",
+};
+
 /** Resolve a URL slug to one of the three known services. */
 function resolveKey(dict: Dictionary, slug: string): ServiceType | null {
   for (const key of Object.keys(SERVICE_FOR_KEY) as ServiceType[]) {
@@ -232,6 +247,7 @@ export default async function ServiceDetailPage({
   const content = getServiceContent(dict, key);
   const Icon = ICONS[key];
   const Scene = SCENES[key];
+  const scenePhoto = SCENE_PHOTOS[key];
 
   const crumbs = [
     { name: dict.nav.home, href: localizedHref(locale, "/") },
@@ -280,9 +296,22 @@ export default async function ServiceDetailPage({
           </Button>
         </div>
 
-        {/* Engraved scene, bleeding off the bottom edge of the masthead. */}
+        {/* The place itself, bleeding off the bottom edge of the masthead. */}
         <div className="pointer-events-none -mb-px mt-12 hidden lg:block">
-          <Scene className="h-56 w-full object-cover opacity-80" />
+          {scenePhoto ? (
+            <div className="relative h-64 w-full overflow-hidden rounded-2xl border border-line">
+              <Photo
+                name={scenePhoto}
+                locale={locale}
+                sizes="(min-width: 1024px) 1200px, 100vw"
+                width={1600}
+                height={900}
+              />
+              <PhotoScrim from="bottom" />
+            </div>
+          ) : (
+            <Scene className="h-56 w-full object-cover opacity-80" />
+          )}
         </div>
       </PageHero>
 

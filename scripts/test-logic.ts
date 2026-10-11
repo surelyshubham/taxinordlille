@@ -25,6 +25,14 @@ import {
   sanitizeArticleHtml,
 } from "../src/lib/sanitize";
 import { csvCell, formatDateTime, fromLocalInputValue, slugify, toCsv } from "../src/lib/utils";
+import { PHOTOS, isPhotoName, photoFallbackWidth, photoWidths, type PhotoName } from "../src/lib/photos";
+import credits from "../src/lib/photos/credits.json";
+import { existsSync, readFileSync } from "node:fs";
+
+const layoutCss = readFileSync(
+  new URL("../src/app/globals.css", import.meta.url),
+  "utf8",
+);
 import { localizedHref } from "../src/lib/i18n/config";
 
 let passed = 0;
@@ -270,6 +278,122 @@ console.log("\nlocale URLs");
   check("french root", localizedHref("fr", "/") === "/");
   check("english is prefixed", localizedHref("en", "/services") === "/en/services");
   check("english root", localizedHref("en", "/") === "/en");
+}
+
+console.log("\nphoto credits (required by CC BY / CC BY-SA)");
+{
+  // The credits page is a licence obligation, not decoration. If a photo ships
+  // without a matching credit entry, the attribution requirement is broken —
+  // and nothing else in the codebase would notice.
+  const credited = new Set(credits.photos.map((p) => p.slug));
+  const catalogued = Object.keys(PHOTOS);
+
+  for (const slug of catalogued) {
+    check(`"${slug}" has a credits entry`, credited.has(slug));
+  }
+
+  for (const slug of credited) {
+    check(`"${slug}" exists in the photo catalogue`, slug in PHOTOS);
+  }
+
+  check(
+    "every credit names an author",
+    credits.photos.every((p) => p.author.trim().length > 0),
+  );
+  check(
+    "every credit names a licence",
+    credits.photos.every((p) => p.licence.trim().length > 0),
+  );
+  check(
+    "every credit links the licence and the source",
+    credits.photos.every(
+      (p) => p.licenceUrl.startsWith("https://") && p.source.startsWith("https://"),
+    ),
+  );
+  check(
+    "changes made are declared for both languages",
+    credits.adaptations.trim().length > 0 && credits.adaptationsEn.trim().length > 0,
+  );
+  check(
+    "no image is credited under a licence we did not vet",
+    credits.photos.every((p) =>
+      ["CC0", "CC-BY", "CC-BY-SA", "PD"].includes(p.licenceId),
+    ),
+  );
+
+  // The catalogue, credits manifest and generated files must agree. A photo
+  // can otherwise render alt text while every responsive source 404s.
+  for (const name of Object.keys(PHOTOS) as PhotoName[]) {
+    const entry = PHOTOS[name];
+    const manifestEntry = credits.photos.find((p) => p.slug === name);
+    const widths = photoWidths(name);
+
+    check(
+      `"${name}" describes itself in both languages`,
+      [entry.alt.fr, entry.alt.en, entry.place.fr, entry.place.en].every(
+        (value) => value.trim().length > 0,
+      ),
+    );
+    check(
+      `"${name}" records sorted generated widths`,
+      widths.length > 0 &&
+        widths.every((width, index) => index === 0 || width > widths[index - 1]),
+      widths,
+    );
+    check(
+      `"${name}" credits match generated widths`,
+      JSON.stringify(manifestEntry?.widths ?? null) === JSON.stringify([...widths]),
+      manifestEntry?.widths,
+    );
+
+    const missing: string[] = [];
+    for (const width of widths) {
+      for (const extension of ["avif", "webp", "jpg"]) {
+        const file = new URL(
+          `../public/images/places/${name}-${width}.${extension}`,
+          import.meta.url,
+        );
+        if (!existsSync(file)) missing.push(`${width}.${extension}`);
+      }
+    }
+    check(`"${name}" has all generated image files`, missing.length === 0, missing);
+
+    const fallback = photoFallbackWidth(name, 2000);
+    check(
+      `"${name}" fallback never points at a missing width`,
+      widths.includes(fallback),
+      fallback,
+    );
+    check(
+      `"${name}" slug is a valid catalogue name`,
+      isPhotoName(name),
+    );
+  }
+}
+
+console.log("\nfirst-visit loader");
+{
+  // The layout decides whether to render the loader by reading a cookie whose
+  // name the component then sets. If the two constants drift apart the loader
+  // flashes on every single page load — annoying, but it would never throw,
+  // so nothing else would catch it.
+  const layoutSource = readFileSync(
+    new URL("../src/app/[lang]/(site)/layout.tsx", import.meta.url),
+    "utf8",
+  );
+  const loaderSource = readFileSync(
+    new URL("../src/components/site/site-loader.tsx", import.meta.url),
+    "utf8",
+  );
+
+  const layoutCookie = /const INTRO_COOKIE = "([^"]+)"/.exec(layoutSource)?.[1];
+  const componentCookie = /const COOKIE = "([^"]+)"/.exec(loaderSource)?.[1];
+
+  check("layout and component agree on the cookie name", !!layoutCookie && layoutCookie === componentCookie, `${layoutCookie} vs ${componentCookie}`);
+
+  // Without these the overlay would sit on top of a page it can never dismiss.
+  check("loader has a noscript escape hatch", loaderSource.includes("<noscript>"));
+  check("loader has a CSS-only fallback dismissal", layoutCss.includes("loader-dismiss"));
 }
 
 console.log(`\n${passed} passed, ${failed} failed\n`);

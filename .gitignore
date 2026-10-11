@@ -37,6 +37,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# photography workflow
+# Original downloads are reproducible from scripts/photo-credits.json via
+# `npm run photos:fetch`; only the graded derivatives ship.
+/public/images/sources/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

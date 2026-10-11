@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, PhoneCall } from "lucide-react";
 
 import { ArtHero } from "@/components/brand/artwork";
+import { Photo, PhotoScrim } from "@/components/site/photo";
 import { HeroQuoteCard } from "@/components/site/hero-quote-card";
 import { Button } from "@/components/ui/button";
 import { Eyebrow } from "@/components/ui/primitives";
@@ -29,16 +30,29 @@ export function HomeHero({
 
   return (
     <section className="relative overflow-hidden pt-[4.5rem]">
-      {/* Engraved backdrop — skyline and light trails, the medallion over it. */}
+      {/* Lille at night behind the engraving — the belfry photograph, then the
+          drawn skyline over it for the engraved linework, then the scrims that
+          pull everything back into the canvas so the headline stays legible. */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-        <ArtHero className="absolute inset-x-0 top-0 h-full w-full opacity-[0.55]" />
+        <div className="absolute inset-0">
+          <Photo
+            name="lille-beffroi"
+            locale={locale}
+            sizes="100vw"
+            width={2000}
+            height={1125}
+            priority
+          />
+        </div>
+        <PhotoScrim from="full" />
+        <ArtHero className="absolute inset-x-0 top-0 h-full w-full opacity-25" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_-10%,rgba(212,182,104,0.10),transparent_65%)]" />
         <div className="absolute inset-0 bg-gradient-to-b from-canvas/40 via-canvas/70 to-canvas" />
         <Image
           src="/brand/logo-mark.png"
           alt=""
           width={256}
-          height={256}
+          height={215}
           className="absolute -right-24 top-40 w-[34rem] max-w-none opacity-[0.05]"
         />
       </div>

@@ -60,6 +60,13 @@ export function SiteFooter({
       label: dict.legal.cookies.title,
       href: localizedHref(locale, "/gestion-des-cookies"),
     },
+    // Required by the CC BY / CC BY-SA licences the photographs are published
+    // under: the attribution has to be reachable from every page, not only
+    // from the image itself.
+    {
+      label: locale === "fr" ? "Crédits photo" : "Photo credits",
+      href: localizedHref(locale, "/credits-photographiques"),
+    },
   ];
 
   const socials = [

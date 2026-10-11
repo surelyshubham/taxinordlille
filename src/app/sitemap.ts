@@ -27,6 +27,11 @@ const STATIC_PATHS = [
     changeFrequency: "yearly" as const,
   },
   { path: "/gestion-des-cookies", priority: 0.2, changeFrequency: "yearly" as const },
+  {
+    path: "/credits-photographiques",
+    priority: 0.2,
+    changeFrequency: "yearly" as const,
+  },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

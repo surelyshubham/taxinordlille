@@ -17,6 +17,9 @@
     "seed:admin": "node --conditions=react-server --import tsx scripts/seed-admin.ts",
     "db:verify": "node --conditions=react-server --import tsx scripts/verify-db.ts",
     "db:requests": "node --conditions=react-server --import tsx scripts/latest-requests.ts",
+    "photos:fetch": "node scripts/fetch-photos.mjs",
+    "photos:process": "node scripts/process-photos.mjs",
+    "photos": "npm run photos:fetch && npm run photos:process",
     "brand:prepare": "node scripts/prepare-logo.mjs"
   },
   "dependencies": {

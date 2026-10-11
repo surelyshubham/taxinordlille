@@ -115,7 +115,7 @@ Le site est disponible sur <http://localhost:3000>, l'administration sur
 | `npm start` | Serveur de production |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
-| `npm run test` | Tests unitaires de la logique métier (validation, dates, HTML, CSV) |
+| `npm run test` | Tests unitaires de la logique métier (validation, dates, HTML, CSV, photos, chargeur) |
 | `npm run check` | lint + typecheck + tests + build |
 | `npm run db:generate` | Génère une migration depuis le schéma |
 | `npm run db:migrate` | Applique les migrations |
@@ -124,6 +124,9 @@ Le site est disponible sur <http://localhost:3000>, l'administration sur
 | `npm run db:requests` | Affiche les dernières demandes enregistrées |
 | `npm run db:studio` | Interface Drizzle Studio |
 | `npm run seed:admin` | Crée/met à jour l'administrateur |
+| `npm run photos` | Télécharge puis traite les photographies sous licence |
+| `npm run photos:fetch` | Télécharge les sources et régénère `scripts/photo-credits.json` |
+| `npm run photos:process` | Recadre, étalonne et décline les images dans `public/images/places` |
 | `npm run brand:prepare` | Régénère les fichiers de marque depuis le logo source |
 
 ---
@@ -334,8 +337,13 @@ drizzle/                          Migrations versionnées
 scripts/
 ├─ seed-admin.ts                  Création du compte administrateur
 ├─ test-logic.ts                  Tests de la logique métier
+├─ fetch-photos.mjs               Téléchargement des photographies sous licence
+├─ process-photos.mjs             Recadrage, étalonnage et déclinaisons
+├─ contact-sheet.mjs              Planche de contrôle visuel des photographies
 └─ prepare-logo.mjs               Préparation des fichiers de marque
-public/brand/                     Logo et variantes
+public/
+├─ brand/                         Logo et variantes
+└─ images/places/                 Photographies traitées (AVIF, WebP, JPEG)
 ```
 
 > `drizzle.config.ts` et `scripts/seed-admin.ts` chargent eux-mêmes `.env.local`
@@ -362,6 +370,42 @@ sur ce fichier** : `#d4b668` est l'or mesuré, et le texte utilise ses
 dégradés. Remplacez `source-logo.jpg` puis relancez `npm run brand:prepare`
 après toute évolution de la marque.
 
+### Photographies sous licence
+
+Les photographies représentent uniquement des lieux réellement desservis :
+gares de Lille, aéroport de Lille-Lesquin et monuments lillois. Elles
+proviennent de Wikimedia Commons et sont publiées sous licence libre. Le
+traitement les recadre, les désature et les étalonne vers la palette noire et
+or afin qu'elles restent lisibles derrière le texte doré.
+
+```bash
+npm run photos          # téléchargement + traitement complet
+npm run photos:fetch    # sources Commons et métadonnées d'attribution
+npm run photos:process  # dérivés AVIF/WebP/JPEG et manifeste des crédits
+```
+
+Les sources originales ne sont pas versionnées : elles peuvent être
+retéléchargées à tout moment. Les dérivés publiés se trouvent dans
+`public/images/places/`, avec leurs crédits générés dans
+`src/lib/photos/credits.json`. La page `/credits-photographiques`, liée dans
+le pied de page et le sitemap, indique l'auteur, la licence, la source et les
+modifications apportées à chaque image.
+
+Pour contrôler visuellement un nouveau traitement avant publication :
+
+```bash
+node scripts/contact-sheet.mjs /tmp/planche-photos.jpg
+```
+
+### Chargeur de première visite
+
+La première visite affiche un chargeur noir et or avec un taxi en mouvement.
+Il n'est rendu côté serveur qu'en l'absence du cookie `tnl_intro`, puis se
+retire automatiquement : les visites suivantes ne contiennent aucun chargeur
+dans le HTML. Une animation CSS autonome et une règle `<noscript>` garantissent
+que la page reste accessible même si JavaScript est lent, bloqué ou désactivé,
+et `prefers-reduced-motion` désactive les boucles décoratives.
+
 ### Ce que couvrent les tests
 
 `npm run test` vérifie la logique qui ne dépend pas d'une base de données :
@@ -370,7 +414,9 @@ consentement, adresses identiques, ordre aller/retour), conversion des heures
 locales Europe/Paris en UTC **avec gestion de l'heure d'été** (CET et CEST),
 assainissement HTML (scripts, gestionnaires d'événements, `javascript:`),
 ancres de sommaire, slugs accentués, protection contre l'injection de formule
-CSV et routage des langues.
+CSV et routage des langues. Il vérifie aussi la cohérence entre le catalogue
+photographique, les crédits de licence et les fichiers générés, ainsi que
+l'accord entre la page et le composant sur le cookie du chargeur.
 
 ---
 

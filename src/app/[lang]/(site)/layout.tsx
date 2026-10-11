@@ -1,10 +1,12 @@
 import type { ReactNode } from "react";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { MobileActionBar } from "@/components/site/mobile-action-bar";
 import { SiteContactProvider } from "@/components/site/contact-context";
 import { SiteFooter } from "@/components/site/footer";
 import { SiteHeader } from "@/components/site/header";
+import { SiteLoader } from "@/components/site/site-loader";
 import { WhatsAppFab } from "@/components/site/whatsapp-fab";
 import { getDictionaryFor } from "@/lib/i18n/get-dictionary";
 import { isLocale, localizedHref } from "@/lib/i18n/config";
@@ -16,6 +18,9 @@ import {
   serializeJsonLd,
   taxiServiceSchema,
 } from "@/lib/seo/jsonld";
+
+/** Must match `COOKIE` in `site-loader.tsx`. */
+const INTRO_COOKIE = "tnl_intro";
 
 /**
  * Public-site chrome.
@@ -41,6 +46,10 @@ export default async function SiteLayout({
     getSiteSettings(),
   ]);
   const siteUrl = getSiteUrl();
+
+  // Decided on the server so a returning visitor's HTML contains no loader at
+  // all — doing this in an effect would flash it on every page load.
+  const showIntro = !(await cookies()).has(INTRO_COOKIE);
 
   const jsonLd = [
     organizationSchema(settings, siteUrl, lang),
@@ -74,6 +83,8 @@ export default async function SiteLayout({
         email: settings.email,
       }}
     >
+      {showIntro ? <SiteLoader /> : null}
+
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-gold-400 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-canvas"
