@@ -1,26 +1,401 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ==========================================================================
+   Taxi Nord Lille — design tokens
+   Palette: near-black canvas, gold typography and accents throughout.
+   ========================================================================== */
+
+@theme {
+  /* --- Canvas / surfaces (warm near-black, never pure #000) --- */
+  --color-canvas: #050404;
+  --color-surface: #0b0a08;
+  --color-surface-2: #12100c;
+  --color-surface-3: #1a1712;
+
+  /* --- Gold brand ramp ---
+     Sampled directly from public/brand/source-logo.jpg so the interface and
+     the emblem are the same material. Values are the measured emblem ramp,
+     extended with darker steps for borders and disabled states. */
+  --color-gold-50: #fdf8ea;
+  --color-gold-100: #faf0d2; /* measured peak highlight */
+  --color-gold-200: #f0dfb4; /* measured bright */
+  --color-gold-300: #e3cb90;
+  --color-gold-400: #d4b668; /* brand gold — measured mid */
+  --color-gold-500: #c2a052;
+  --color-gold-600: #a7863c; /* measured deep */
+  --color-gold-700: #7d652b;
+  --color-gold-800: #57451b;
+
+  /* --- Semantic content colours (gold family, differentiated by tint/weight) --- */
+  --color-content: #f0dfb4; /* headings — 14.6:1 on canvas */
+  --color-content-body: #d8c394; /* body copy — 11.8:1 */
+  --color-content-muted: #a8946a; /* secondary — 6.8:1 */
+  --color-content-subtle: #94835a; /* tertiary / meta — 5.5:1 */
+
+  --color-line: #2c2619; /* neutral border */
+  --color-line-strong: #453c25;
+
+  /* --- Status (admin only; muted to sit inside the palette) --- */
+  --color-success: #7fb069;
+  --color-warning: #d99a3e;
+  --color-danger: #cf6b5c;
+  --color-info: #6f9bb8;
+
+  /* --- Typography ---
+     Playfair Display carries the headings because the brand mark itself is set
+     in a high-contrast serif; Manrope handles UI and body copy so long-form
+     text and form fields stay highly legible on black. */
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-display: var(--font-playfair), var(--font-manrope), ui-serif, Georgia,
+    serif;
+
+  /* --- Motion --- */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* --- Radii --- */
+  --radius-card: 0.875rem;
+
+  /* --- Shadows --- */
+  --shadow-gold: 0 0 0 1px rgb(212 175 55 / 0.28), 0 18px 48px -18px rgb(0 0 0 / 0.9);
+  --shadow-lift: 0 24px 60px -24px rgb(0 0 0 / 0.95);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  * {
+    border-color: var(--color-line);
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-content-body);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+    font-variation-settings: "opsz" 32;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Headings default to the brightest gold in the ramp, set in the brand
+     serif to echo the medallion's lettering. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--color-content);
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--color-gold-400) 32%, transparent);
+    color: var(--color-gold-50);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-gold-400);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  /* Remove the default focus ring only where :focus-visible replaces it. */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  /* Native date/time pickers are near-invisible on a black canvas otherwise. */
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator,
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    filter: invert(88%) sepia(24%) saturate(560%) hue-rotate(357deg)
+      brightness(97%);
+    cursor: pointer;
+    opacity: 0.9;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-surface);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #332d1f;
+    border-radius: 999px;
+    border: 2px solid var(--color-surface);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #4a412b;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Thin gold rule used to separate editorial sections. */
+  .rule-gold {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--color-gold-400) 45%, transparent),
+      transparent
+    );
+  }
+
+  /* Faint gold texture for hero / CTA panels — no gradients-as-decoration,
+     this reads as a material, not an effect. */
+  .surface-panel {
+    background-image:
+      radial-gradient(
+        ellipse 80% 60% at 50% -20%,
+        color-mix(in srgb, var(--color-gold-400) 9%, transparent),
+        transparent 70%
+      ),
+      linear-gradient(180deg, var(--color-surface-2), var(--color-surface));
+    border: 1px solid var(--color-line);
+  }
+
+  .surface-card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-line);
+  }
+
+  /* Hairline gold top border that appears on hover. */
+  .edge-top {
+    position: relative;
+  }
+  .edge-top::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--color-gold-400),
+      transparent
+    );
+    opacity: 0;
+    transition: opacity 0.35s var(--ease-out-expo);
+  }
+  .edge-top:hover::before,
+  .edge-top:focus-within::before {
+    opacity: 1;
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Article typography                                                     */
+  /* Sized for a ~68ch measure on the article pages.                        */
+  /* ---------------------------------------------------------------------- */
+  .article-prose {
+    font-size: 1.0625rem;
+    line-height: 1.85;
+    color: var(--color-content-body);
+  }
+
+  .article-prose > * + * {
+    margin-top: 1.4em;
+  }
+
+  .article-prose h2 {
+    margin-top: 2.4em;
+    font-size: 1.75rem;
+    line-height: 1.25;
+    scroll-margin-top: 6rem;
+  }
+  .article-prose h3 {
+    margin-top: 2em;
+    font-size: 1.3rem;
+    line-height: 1.35;
+    scroll-margin-top: 6rem;
+  }
+  .article-prose h4 {
+    margin-top: 1.75em;
+    font-size: 1.1rem;
+    scroll-margin-top: 6rem;
+  }
+
+  .article-prose strong {
+    color: var(--color-content);
+    font-weight: 600;
+  }
+
+  .article-prose em {
+    font-style: italic;
+  }
+
+  .article-prose a {
+    color: var(--color-gold-300);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--color-gold-600) 70%, transparent);
+    text-underline-offset: 3px;
+    transition: color 0.2s;
+  }
+  .article-prose a:hover {
+    color: var(--color-gold-200);
+  }
+
+  .article-prose ul,
+  .article-prose ol {
+    padding-left: 1.35em;
+  }
+  .article-prose ul {
+    list-style: none;
+  }
+  .article-prose ul > li {
+    position: relative;
+  }
+  .article-prose ul > li::before {
+    content: "";
+    position: absolute;
+    left: -1.1em;
+    top: 0.78em;
+    width: 0.35em;
+    height: 0.35em;
+    rotate: 45deg;
+    background: var(--color-gold-600);
+  }
+  .article-prose ol {
+    list-style: decimal;
+  }
+  .article-prose li::marker {
+    color: var(--color-gold-500);
+  }
+  .article-prose li + li {
+    margin-top: 0.6em;
+  }
+
+  .article-prose blockquote {
+    border-left: 2px solid var(--color-gold-600);
+    padding-left: 1.25em;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    line-height: 1.6;
+    color: var(--color-content);
+  }
+
+  .article-prose figure {
+    margin-inline: 0;
+  }
+  .article-prose figure img {
+    width: 100%;
+    height: auto;
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-line);
+  }
+  .article-prose figcaption {
+    margin-top: 0.7em;
+    font-size: 0.8125rem;
+    color: var(--color-content-subtle);
+    text-align: center;
+  }
+
+  .article-prose hr {
+    margin-block: 3em;
+    height: 1px;
+    border: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--color-line-strong),
+      transparent
+    );
+  }
+
+  .article-prose code {
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-line);
+    border-radius: 0.35rem;
+    padding: 0.12em 0.4em;
+    font-size: 0.9em;
+    color: var(--color-gold-200);
+  }
+
+  .article-prose pre {
+    overflow-x: auto;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: 0.75rem;
+    padding: 1.1rem 1.25rem;
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+  .article-prose pre code {
+    background: none;
+    border: 0;
+    padding: 0;
+    font-size: inherit;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Editorial drop cap for long-form articles. */
+  .prose-dropcap > p:first-of-type::first-letter {
+    float: left;
+    font-family: var(--font-display);
+    font-size: 3.4em;
+    line-height: 0.82;
+    padding-right: 0.09em;
+    padding-top: 0.06em;
+    font-weight: 500;
+    color: var(--color-gold-400);
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.7s var(--ease-out-expo) both;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Honour the OS reduced-motion preference everywhere. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
