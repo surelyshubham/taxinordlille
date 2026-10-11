@@ -30,7 +30,16 @@ export function formatMessage(
   );
 }
 
-/** Format a UTC timestamp in the given French/English locale. */
+/** Every stored instant is UTC; the business operates in Europe/Paris. */
+export const BUSINESS_TIMEZONE = "Europe/Paris";
+
+/**
+ * Format a UTC timestamp for the business's local time.
+ *
+ * The timezone is pinned rather than left to the host: the app is deployed on
+ * Vercel (UTC) but may be developed from a machine in any timezone, and an
+ * operator must always see the same time they told the customer.
+ */
 export function formatDate(
   date: Date | string | number,
   tag: string,
@@ -42,7 +51,10 @@ export function formatDate(
 ): string {
   const value = date instanceof Date ? date : new Date(date);
   if (Number.isNaN(value.getTime())) return "—";
-  return new Intl.DateTimeFormat(tag, options).format(value);
+  return new Intl.DateTimeFormat(tag, {
+    timeZone: BUSINESS_TIMEZONE,
+    ...options,
+  }).format(value);
 }
 
 /** `fr-FR` style short date + time, used across the admin panel. */
@@ -66,7 +78,7 @@ export function formatDateTime(
  */
 export function todayInputValue(): string {
   return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Paris",
+    timeZone: BUSINESS_TIMEZONE,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -86,7 +98,7 @@ export function toLocalInputValue(value: Date | string): string {
   if (Number.isNaN(date.getTime())) return "";
   // en-CA yields ISO-like YYYY-MM-DD ordering.
   const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Paris",
+    timeZone: BUSINESS_TIMEZONE,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",

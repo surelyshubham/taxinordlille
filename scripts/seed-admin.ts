@@ -12,12 +12,23 @@
  * The password is read from the environment, never from a command-line
  * argument, so it does not end up in shell history or process listings.
  */
+import { existsSync } from "node:fs";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { Pool } from "@neondatabase/serverless";
 import { hash } from "bcryptjs";
 
 import * as schema from "../src/lib/db/schema";
+
+/**
+ * Load local env files so `npm run seed:admin` works without exporting
+ * variables by hand. Anything already in the environment wins.
+ */
+if (!process.env.DATABASE_URL) {
+  for (const file of [".env.local", ".env"]) {
+    if (existsSync(file)) process.loadEnvFile(file);
+  }
+}
 
 const {
   adminUsers,

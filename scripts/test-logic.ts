@@ -24,7 +24,7 @@ import {
   injectHeadingIds,
   sanitizeArticleHtml,
 } from "../src/lib/sanitize";
-import { csvCell, fromLocalInputValue, slugify, toCsv } from "../src/lib/utils";
+import { csvCell, formatDateTime, fromLocalInputValue, slugify, toCsv } from "../src/lib/utils";
 import { localizedHref } from "../src/lib/i18n/config";
 
 let passed = 0;
@@ -162,6 +162,24 @@ console.log("\nParis timezone conversion");
     "journey departure stored as UTC",
     departureAt?.toISOString() === "2099-01-15T08:30:00.000Z",
     departureAt?.toISOString(),
+  );
+}
+
+console.log("\ndisplay timezone (must be Europe/Paris, not the host's)");
+{
+  // 08:30 UTC in January is 09:30 in Paris (CET). On a machine set to UTC or
+  // to UTC+05:30 this would otherwise render as 08:30 or 14:00.
+  const winter = formatDateTime("2099-01-15T08:30:00.000Z", "fr-FR");
+  check("winter renders as 09:30 Paris", winter.includes("09:30"), winter);
+
+  // In July Paris is on CEST (UTC+2), so the same instant is 10:30.
+  const summer = formatDateTime("2099-07-15T08:30:00.000Z", "fr-FR");
+  check("summer renders as 10:30 Paris", summer.includes("10:30"), summer);
+
+  check(
+    "host timezone does not leak",
+    !winter.includes("14:00") && !winter.includes("08:30"),
+    winter,
   );
 }
 

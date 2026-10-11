@@ -120,6 +120,8 @@ Le site est disponible sur <http://localhost:3000>, l'administration sur
 | `npm run db:generate` | Génère une migration depuis le schéma |
 | `npm run db:migrate` | Applique les migrations |
 | `npm run db:push` | Pousse le schéma sans migration (prototypage) |
+| `npm run db:verify` | Vérifie la connexion et liste les tables / leur contenu |
+| `npm run db:requests` | Affiche les dernières demandes enregistrées |
 | `npm run db:studio` | Interface Drizzle Studio |
 | `npm run seed:admin` | Crée/met à jour l'administrateur |
 | `npm run brand:prepare` | Régénère les fichiers de marque depuis le logo source |
@@ -189,7 +191,10 @@ Les migrations versionnées se trouvent dans `drizzle/`.
 | `rate_limits` | Compteurs anti-abus (fenêtres fixes) |
 
 Tous les horodatages sont stockés en **UTC** (`timestamptz`) et affichés en
-Europe/Paris dans l'interface.
+**Europe/Paris** dans l'interface. Le fuseau est codé en dur
+(`BUSINESS_TIMEZONE` dans `src/lib/utils.ts`) et non déduit du serveur : le
+déploiement est en UTC mais un poste de développement peut être n'importe où,
+et l'exploitant doit toujours voir l'heure qu'il a donnée au client.
 
 ---
 
@@ -332,6 +337,11 @@ scripts/
 └─ prepare-logo.mjs               Préparation des fichiers de marque
 public/brand/                     Logo et variantes
 ```
+
+> `drizzle.config.ts` et `scripts/seed-admin.ts` chargent eux-mêmes `.env.local`
+> : `npm run db:migrate` et `npm run seed:admin` fonctionnent donc sans exporter
+> de variable à la main. Une variable déjà présente dans l'environnement
+> (CI, production) est toujours prioritaire.
 
 ### Identité visuelle
 

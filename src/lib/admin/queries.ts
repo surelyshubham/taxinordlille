@@ -1,6 +1,17 @@
 import "server-only";
 
-import { and, count, desc, eq, gte, ilike, lte, or, sql, type SQL } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  lte,
+  or,
+  type SQL,
+} from "drizzle-orm";
 
 import { getDb } from "@/lib/db";
 import {
@@ -112,12 +123,7 @@ export async function getEnquiries(filters: EnquiryFilters): Promise<{
           status: notificationLogs.status,
         })
         .from(notificationLogs)
-        .where(
-          sql`${notificationLogs.quoteRequestId} in ${sql.join(
-            ids.map((id) => sql`${id}`),
-            sql`, `,
-          )}`,
-        )
+        .where(inArray(notificationLogs.quoteRequestId, ids))
         .orderBy(desc(notificationLogs.createdAt))
     : [];
 
