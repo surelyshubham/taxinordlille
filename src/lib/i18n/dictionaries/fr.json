@@ -41,6 +41,8 @@
     "required": "obligatoire",
     "optional": "facultatif",
     "loading": "Envoi en cours…",
+    "pageLoading": "Chargement",
+    "pageLoadingSr": "Chargement de la page",
     "genericError": "Une erreur est survenue. Merci de réessayer.",
     "backHome": "Retour à l'accueil",
     "backToServices": "Retour aux services",

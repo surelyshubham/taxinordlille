@@ -371,7 +371,7 @@ console.log("\nphoto credits (required by CC BY / CC BY-SA)");
   }
 }
 
-console.log("\nfirst-visit loader");
+console.log("\npage-transition loader");
 {
   // The layout decides whether to render the loader by reading a cookie whose
   // name the component then sets. If the two constants drift apart the loader
@@ -394,6 +394,23 @@ console.log("\nfirst-visit loader");
   // Without these the overlay would sit on top of a page it can never dismiss.
   check("loader has a noscript escape hatch", loaderSource.includes("<noscript>"));
   check("loader has a CSS-only fallback dismissal", layoutCss.includes("loader-dismiss"));
+
+  const minVisible = Number(/const MIN_VISIBLE_MS = (\d+)/.exec(loaderSource)?.[1]);
+  const maxVisible = Number(/const MAX_VISIBLE_MS = (\d+)/.exec(loaderSource)?.[1]);
+  check("overlay is held for at least two seconds", minVisible >= 2000, minVisible);
+  check("overlay has a ceiling above the minimum", maxVisible > minVisible, `${minVisible} -> ${maxVisible}`);
+  check("the CSS dismissal is the ceiling, not a 2s timer", /\[data-site-loader\]\s*\{[^}]*8s/.test(layoutCss));
+
+  // Navigation is picked up at the application layer, not inside the router.
+  check("activation listens for internal link clicks", loaderSource.includes('document.addEventListener("click", onClick, true)'));
+  check("activation covers back/forward", loaderSource.includes('addEventListener("popstate"'));
+  check("same-page links are ignored", loaderSource.includes("url.pathname === window.location.pathname"));
+  check("external hosts are ignored", loaderSource.includes("url.origin !== window.location.origin"));
+  check("opt-out attribute honoured", loaderSource.includes("dataset.noLoader"));
+  check('target="_blank" ignored', loaderSource.includes('getAttribute("target")'));
+  check("download links ignored", loaderSource.includes('hasAttribute("download")'));
+  check("modifier-clicks ignored", loaderSource.includes("event.metaKey"));
+  check("reduced motion stills the ambient loops", layoutCss.includes(".loader-taxi") && layoutCss.includes("prefers-reduced-motion"));
 }
 
 console.log(`\n${passed} passed, ${failed} failed\n`);

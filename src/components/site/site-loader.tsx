@@ -1,80 +1,215 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
 /**
- * First-visit loader: a taxi running along a road, in the brand's black and
- * gold.
+ * Branded page transition.
  *
- * Design constraints, in priority order:
+ * The overlay covers three moments, and only those three: the first visit
+ * (decided on the server from a cookie, so a return visit never flashes it),
+ * a navigation to a different internal page, and a browser back/forward.
+ * Everything below exists to keep those three from turning into something
+ * intrusive:
  *
- *  1. **It can never trap the page.** Three independent mechanisms dismiss it:
- *     the cookie check below, a CSS keyframe that fades and hides the overlay
- *     after a fixed time, and a `<noscript>` rule. If JavaScript is slow,
- *     blocked or broken, the visitor still gets the site.
- *  2. **It never flashes on a return visit.** The decision to render is made on
- *     the server from a cookie, not in an effect — so a repeat page load has no
- *     loader in the HTML at all rather than appearing and vanishing.
- *  3. **It respects `prefers-reduced-motion`**, falling back to a static frame
- *     that still dismisses itself promptly.
+ *  1. **It is held long enough to read.** Showing it for the few milliseconds a
+ *     prefetched route takes would just flicker, so it stays up for
+ *     `MIN_VISIBLE_MS` regardless of how fast the destination arrives.
+ *  2. **It can never trap the page.** A hard ceiling dismisses it even if the
+ *     navigation never settles, a CSS keyframe dismisses it if JavaScript dies
+ *     mid-flight, and a `<noscript>` rule hides it outright without JavaScript.
+ *  3. **It does not fire on noise.** Clicks on anchors are filtered: same-page
+ *     links, hash links, modified clicks, external hosts, `target="_blank"`,
+ *     `download` and anything marked `data-no-loader` are all ignored, as are
+ *     form interactions and focus changes.
+ *  4. **It respects `prefers-reduced-motion`** through the CSS, which stills
+ *     the ambient motion and keeps the fade.
+ *
+ * This is deliberately separate from the form-submission animation: that one
+ * reports on a single request, this one reports on a route change.
  */
 
 const COOKIE = "tnl_intro";
-const DISMISS_AFTER_MS = 2600;
+/** The overlay is held for at least this long, so it reads as deliberate. */
+const MIN_VISIBLE_MS = 2000;
+/** Must match the `loader-dismiss` keyframe duration in `globals.css`. */
+const FADE_MS = 700;
+/** A navigation that never settles must not strand the visitor. */
+const MAX_VISIBLE_MS = 8000;
 
-export function SiteLoader({ className }: { className?: string }) {
-  // `leaving` starts the fade; `gone` unmounts once it has finished, so the
-  // overlay does not linger in the DOM for the rest of the session.
-  const [leaving, setLeaving] = useState(false);
-  const [gone, setGone] = useState(false);
+type Phase = "hidden" | "visible" | "leaving";
 
-  useEffect(() => {
-    // Remember the choice for the rest of the browsing session.
-    document.cookie = `${COOKIE}=1; path=/; max-age=${60 * 60 * 24}; samesite=lax`;
+export function SiteLoader({
+  firstVisit = false,
+  labels,
+  className,
+}: {
+  /** Rendered on the server from the `tnl_intro` cookie. */
+  firstVisit?: boolean;
+  labels: { label: string; sr: string };
+  className?: string;
+}) {
+  const pathname = usePathname();
+  const pathnameRef = useRef(pathname);
 
-    let done = false;
-    const finish = () => {
-      if (done) return;
-      done = true;
-      setLeaving(true);
-      // Slightly longer than the fade itself, so the element is only removed
-      // once it is fully transparent.
-      window.setTimeout(() => setGone(true), 800);
-    };
+  const [phase, setPhase] = useState<Phase>(firstVisit ? "visible" : "hidden");
+  const phaseRef = useRef<Phase>(phase);
+  // Bumped on every activation so the element (and its CSS failsafe keyframe)
+  // is rebuilt from scratch rather than reusing a finished animation.
+  const [runId, setRunId] = useState(0);
 
-    if (document.readyState === "complete") {
-      finish();
-    } else {
-      window.addEventListener("load", finish, { once: true });
+  const startedAtRef = useRef(0);
+  const startPathRef = useRef<string | null>(null);
+  const readyRef = useRef(false);
+
+  const failsafeRef = useRef<number | null>(null);
+  const readyTimerRef = useRef<number | null>(null);
+  const hideTimerRef = useRef<number | null>(null);
+
+  const clearTimers = useCallback(() => {
+    for (const timer of [failsafeRef, readyTimerRef, hideTimerRef]) {
+      if (timer.current !== null) window.clearTimeout(timer.current);
+      timer.current = null;
     }
-
-    // Hard ceiling: a resource that never fires `load` must not hold the page.
-    const ceiling = window.setTimeout(finish, DISMISS_AFTER_MS);
-
-    return () => {
-      window.removeEventListener("load", finish);
-      window.clearTimeout(ceiling);
-    };
   }, []);
 
-  if (gone) return null;
+  const leave = useCallback(() => {
+    if (phaseRef.current !== "visible") return;
+    clearTimers();
+    phaseRef.current = "leaving";
+    setPhase("leaving");
+    hideTimerRef.current = window.setTimeout(() => {
+      hideTimerRef.current = null;
+      phaseRef.current = "hidden";
+      setPhase("hidden");
+    }, FADE_MS);
+  }, [clearTimers]);
+
+  /**
+   * The destination has rendered (or the first paint is done). Hold the overlay
+   * only for whatever remains of the minimum, then fade it out.
+   */
+  const markReady = useCallback(() => {
+    if (phaseRef.current !== "visible" || readyRef.current) return;
+    readyRef.current = true;
+    const elapsed = Date.now() - startedAtRef.current;
+    readyTimerRef.current = window.setTimeout(
+      () => {
+        readyTimerRef.current = null;
+        leave();
+      },
+      Math.max(0, MIN_VISIBLE_MS - elapsed),
+    );
+  }, [leave]);
+
+  const show = useCallback(() => {
+    // Already up: a second navigation cannot make it more up.
+    if (phaseRef.current === "visible") return;
+    clearTimers();
+    startedAtRef.current = Date.now();
+    startPathRef.current = pathnameRef.current;
+    readyRef.current = false;
+    phaseRef.current = "visible";
+    setRunId((id) => id + 1);
+    setPhase("visible");
+    failsafeRef.current = window.setTimeout(() => {
+      failsafeRef.current = null;
+      leave();
+    }, MAX_VISIBLE_MS);
+  }, [clearTimers, leave]);
+
+  // First visit: show immediately, and remember the visit so it does not
+  // happen again. The overlay is only dismissed once the document has loaded —
+  // or, if that never fires, by the ceiling in `show`.
+  useEffect(() => {
+    if (!firstVisit) return;
+    show();
+    document.cookie = `${COOKIE}=1; path=/; max-age=${60 * 60 * 24}; samesite=lax`;
+
+    const onLoad = () => markReady();
+    if (document.readyState === "complete") markReady();
+    else window.addEventListener("load", onLoad, { once: true });
+
+    return () => window.removeEventListener("load", onLoad);
+  }, [firstVisit, markReady, show]);
+
+  // A completed navigation is what a visible overlay is waiting for.
+  useEffect(() => {
+    pathnameRef.current = pathname;
+    if (
+      phaseRef.current === "visible" &&
+      startPathRef.current !== null &&
+      startPathRef.current !== pathname
+    ) {
+      markReady();
+    }
+  }, [pathname, markReady]);
+
+  // Where navigations start from: an internal link click that will change the
+  // page, or a back/forward press.
+  useEffect(() => {
+    const onClick = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+      const anchor = (event.target as Element | null)?.closest?.("a[href]");
+      if (!(anchor instanceof HTMLAnchorElement)) return;
+      if (anchor.dataset.noLoader !== undefined) return;
+      if (anchor.hasAttribute("download")) return;
+
+      const target = anchor.getAttribute("target");
+      if (target && target !== "_self") return;
+
+      const raw = anchor.getAttribute("href") ?? "";
+      if (!raw || raw.startsWith("#")) return;
+
+      let url: URL;
+      try {
+        url = new URL(anchor.href, window.location.href);
+      } catch {
+        return;
+      }
+      if (url.origin !== window.location.origin) return;
+      // Same document — a hash or query tweak, not a page transition.
+      if (url.pathname === window.location.pathname) return;
+
+      show();
+    };
+
+    const onPop = () => {
+      // `popstate` has already swapped the URL; if the path is unchanged this
+      // was a hash or query move, which does not warrant the overlay.
+      if (window.location.pathname === pathnameRef.current) return;
+      show();
+    };
+
+    document.addEventListener("click", onClick, true);
+    window.addEventListener("popstate", onPop);
+    return () => {
+      document.removeEventListener("click", onClick, true);
+      window.removeEventListener("popstate", onPop);
+    };
+  }, [show]);
+
+  if (phase === "hidden") return null;
 
   return (
     <>
       {/*
-        No JavaScript means no `load` listener. Hide it outright rather than
-        risk covering a page that will never be dismissed.
+        No JavaScript means no navigation interception. Rather than risk
+        covering a page that will never be dismissed, hide the overlay outright.
       */}
       <noscript>
         <style>{`[data-site-loader]{display:none!important}`}</style>
       </noscript>
 
       <div
+        key={runId}
         data-site-loader
-        aria-hidden="true"
-        data-leaving={leaving ? "" : undefined}
+        data-leaving={phase === "leaving" ? "" : undefined}
+        role="status"
         className={cn(
           "site-loader fixed inset-0 z-[200] flex flex-col items-center justify-center bg-canvas",
           className,
@@ -87,8 +222,10 @@ export function SiteLoader({ className }: { className?: string }) {
         </p>
 
         <p className="loader-ellipsis mt-3 text-sm tracking-[0.2em] text-content-subtle uppercase">
-          Chargement
+          {labels.label}
         </p>
+
+        <span className="sr-only">{labels.sr}</span>
 
         {/* Indeterminate sweep — a fake determinate percentage would be a lie. */}
         <div className="mt-8 h-px w-40 overflow-hidden bg-line sm:w-56">
@@ -102,7 +239,7 @@ export function SiteLoader({ className }: { className?: string }) {
 /** The medallion over a road with a taxi running along it. */
 function LoaderScene() {
   return (
-    <div className="relative w-full max-w-sm px-8">
+    <div className="relative w-full max-w-sm px-8" aria-hidden="true">
       <div className="relative mx-auto w-32 sm:w-40">
         <div className="loader-glow" />
         {/*
@@ -156,11 +293,7 @@ function LoaderScene() {
             strokeWidth="1.3"
             strokeLinejoin="round"
           />
-          <path
-            d="M49 43h38"
-            className="stroke-gold-300/45"
-            strokeWidth="1.1"
-          />
+          <path d="M49 43h38" className="stroke-gold-300/45" strokeWidth="1.1" />
           {/* Headlight. */}
           <circle cx="112" cy="66" r="2.6" className="fill-gold-100" />
           <rect x="2" y="62" width="7" height="5" rx="2" className="fill-gold-200/70" />

@@ -41,6 +41,8 @@
     "required": "required",
     "optional": "optional",
     "loading": "Sending…",
+    "pageLoading": "Loading",
+    "pageLoadingSr": "Loading the page",
     "genericError": "Something went wrong. Please try again.",
     "backHome": "Back to home",
     "backToServices": "Back to services",

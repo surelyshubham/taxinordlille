@@ -419,14 +419,26 @@ Pour contrôler visuellement un nouveau traitement avant publication :
 node scripts/contact-sheet.mjs /tmp/planche-photos.jpg
 ```
 
-### Chargeur de première visite
+### Chargeur de transition de page
 
-La première visite affiche un chargeur noir et or avec un taxi en mouvement.
-Il n'est rendu côté serveur qu'en l'absence du cookie `tnl_intro`, puis se
-retire automatiquement : les visites suivantes ne contiennent aucun chargeur
-dans le HTML. Une animation CSS autonome et une règle `<noscript>` garantissent
-que la page reste accessible même si JavaScript est lent, bloqué ou désactivé,
-et `prefers-reduced-motion` désactive les boucles décoratives.
+Le chargeur noir et or (emblème, « Taxi Nord Lille », taxi sur une route)
+apparaît à trois moments, et uniquement ceux-là : la **première visite**,
+**la navigation vers une autre page interne** et **précédent/suivant** du
+navigateur. La décision de première visite se prend côté serveur à partir du
+cookie `tnl_intro`, si bien qu'une visite de retour ne contient aucun chargeur
+dans le HTML et ne peut pas clignoter.
+
+La durée d'affichage est d'au moins 2 000 ms, même si la destination est
+instantanée : un affichage de quelques millisecondes ne serait qu'un
+scintillement. Un plafond de 8 s libère la page si une navigation n'aboutit
+jamais, et une règle `<noscript>` masque l'ensemble sans JavaScript. Le
+chargeur ignore le bruit : liens de la même page, ancres, clics modifiés,
+hôtes externes, `target="_blank"`, `download`, et tout élément marqué
+`data-no-loader` ; il ne réagit ni au focus ni à la saisie dans les formulaires.
+Il vit au niveau applicatif (capture des clics sur les liens internes et
+`popstate`), jamais dans la base de données, le rendu serveur ou les API, donc
+il n'ajoute aucun délai artificiel. `prefers-reduced-motion` fige les boucles
+décoratives tout en gardant un fondu court.
 
 ### Ce que couvrent les tests
 
@@ -437,7 +449,10 @@ locales Europe/Paris en UTC **avec gestion de l'heure d'été** (CET et CEST),
 assainissement HTML (scripts, gestionnaires d'événements, `javascript:`),
 ancres de sommaire, slugs accentués, protection contre l'injection de formule
 CSV et routage des langues. Il vérifie aussi la cohérence entre le catalogue
-photographique, les crédits de licence et les fichiers générés.
+photographique, les crédits de licence et les fichiers générés ; l'accord entre
+la page et le composant sur le cookie du chargeur ; ainsi que la durée minimale
+et le plafond du chargeur et les filtres qui l'empêchent de se déclencher sur
+le bruit.
 
 ---
 

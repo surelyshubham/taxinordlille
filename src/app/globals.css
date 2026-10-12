@@ -374,16 +374,16 @@
 }
 
 /* --------------------------------------------------------------------------
-   First-visit loader
+   Page-transition loader
    --------------------------------------------------------------------------
    The taxi runs, the road scrolls, the sweep indicates activity. None of that
    is load-bearing: the only rule that matters for correctness is
-   `loader-dismiss`, which fades the overlay and hides it on its own. If the
-   cookie check or the `load` listener never runs, the overlay still goes away
-   and stops capturing pointer events. */
+   `loader-dismiss`, which fades the overlay and hides it on its own. It waits
+   `8s`, matching the component's ceiling, so it is a backstop for broken
+   JavaScript rather than a timer that competes with real navigation. */
 
 [data-site-loader] {
-  animation: loader-dismiss 700ms cubic-bezier(0.4, 0, 0.2, 1) 2.4s forwards;
+  animation: loader-dismiss 700ms cubic-bezier(0.4, 0, 0.2, 1) 8s forwards;
 }
 
 /* The component sets this the moment the page is ready, cancelling the wait. */

@@ -83,7 +83,10 @@ export default async function SiteLayout({
         email: settings.email,
       }}
     >
-      {showIntro ? <SiteLoader /> : null}
+      <SiteLoader
+        firstVisit={showIntro}
+        labels={{ label: dict.common.pageLoading, sr: dict.common.pageLoadingSr }}
+      />
 
       <a
         href="#main"
