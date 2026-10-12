@@ -225,12 +225,13 @@ export function ContactForm({ labels }: { labels: Labels }) {
         )}
       </Field>
 
-      {/* State: sending. The taxi sets off while the request is in flight;
-          the form stays on screen so nothing the visitor typed is lost. */}
-      {submitting ? (
+      {/* States: sending and error. The taxi never moves — the envelope does — and
+          it only goes inside the office once the server has confirmed. On
+          failure it comes back to the roof, so nothing looks delivered. */}
+      {submitting || state.status === "error" ? (
         <div role="status" aria-live="polite" className="surface-card rounded-2xl p-5">
-          <MessageJourney state="sending" />
-          <p className="sr-only">{labels.submitting}</p>
+          <MessageJourney state={submitting ? "sending" : "error"} />
+          <p className="sr-only">{submitting ? labels.submitting : labels.errors.generic}</p>
         </div>
       ) : null}
 

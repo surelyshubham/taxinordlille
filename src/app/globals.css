@@ -376,7 +376,7 @@
 /* --------------------------------------------------------------------------
    Page-transition loader
    --------------------------------------------------------------------------
-   The taxi runs, the road scrolls, the sweep indicates activity. None of that
+   The car crosses a night street and the wordmark sits above it. None of that
    is load-bearing: the only rule that matters for correctness is
    `loader-dismiss`, which fades the overlay and hides it on its own. It waits
    `8s`, matching the component's ceiling, so it is a backstop for broken
@@ -391,29 +391,15 @@
   animation-delay: 0ms;
 }
 
-.loader-glow {
-  position: absolute;
-  inset: -25%;
-  border-radius: 9999px;
-  background: radial-gradient(
-    circle,
-    rgb(212 182 104 / 0.16) 0%,
-    rgb(212 182 104 / 0.05) 45%,
-    transparent 70%
-  );
-  animation: loader-breathe 3.2s ease-in-out infinite;
-}
-
+/*
+   The car is parked off-frame to the left and driven across, fading in and out
+   at the edges so the loop never shows its seam. Two animations rather than
+   one: `transform` for the crossing, `opacity` for the fades.
+*/
 .loader-taxi {
-  animation: loader-drive 2.4s cubic-bezier(0.42, 0, 0.58, 1) infinite;
-}
-
-.loader-dashes {
-  animation: loader-dash 0.85s linear infinite;
-}
-
-.loader-sweep {
-  animation: loader-sweep 1.5s ease-in-out infinite;
+  animation:
+    loader-drive 9s linear infinite,
+    loader-fade 9s linear infinite;
 }
 
 /* Animated ellipsis, rather than a timer re-rendering text. */
@@ -430,38 +416,26 @@
 }
 
 @keyframes loader-drive {
-  0% {
-    transform: translate3d(-72px, 0, 0);
+  from {
+    transform: translate3d(0, 0, 0);
   }
-  100% {
-    transform: translate3d(330px, 0, 0);
-  }
-}
-
-@keyframes loader-dash {
   to {
-    transform: translate3d(40px, 0, 0);
+    transform: translate3d(760px, 0, 0);
   }
 }
 
-@keyframes loader-sweep {
+@keyframes loader-fade {
   0% {
-    transform: translate3d(-120%, 0, 0);
+    opacity: 0;
   }
-  100% {
-    transform: translate3d(420%, 0, 0);
-  }
-}
-
-@keyframes loader-breathe {
-  0%,
-  100% {
-    opacity: 0.55;
-    transform: scale(0.94);
-  }
-  50% {
+  14% {
     opacity: 1;
-    transform: scale(1.04);
+  }
+  86% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
   }
 }
 
@@ -485,32 +459,31 @@
    Form-submission scene (taxi to office)
    --------------------------------------------------------------------------
    `data-state` on the wrapper is the only input: the form sets it from its
-   real request lifecycle, and these rules style the parked, driving and
-   delivered frames. There is no timer here, so the animation can never claim
-   a delivery the server has not confirmed. */
+   real request lifecycle, and these rules style the four frames. There is no
+   timer here, so the scene cannot show a delivered message before the server
+   has confirmed one.
 
-.journey-taxi {
-  transform: translate(0, 0);
-}
-
-.journey[data-state="sending"] .journey-taxi {
-  animation: journey-drive 2.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-}
-
-.journey[data-state="sending"] .journey-road-dash {
-  animation: journey-dash 0.9s linear infinite;
-}
-
-.journey[data-state="success"] .journey-taxi {
-  transform: translate(452px, -34px);
-}
+   The taxi is parked in every state — only the envelope moves, and it is
+   stopped at the kerb until `success` allows it inside. Nothing here loops:
+   every flight is a single pass with `forwards`, so the office can never be
+   entered twice. */
 
 .journey-envelope {
-  transition: opacity 300ms ease-out;
+  transform: translate(0, 0);
+  transition: transform 620ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.journey[data-state="sending"] .journey-envelope {
+  animation: journey-fly 1500ms cubic-bezier(0.45, 0, 0.25, 1) forwards;
+}
+
+/* One step inside the door, then the check. */
 .journey[data-state="success"] .journey-envelope {
-  opacity: 0;
+  transform: translate(324px, -44px);
+}
+
+.journey[data-state="error"] .journey-envelope {
+  transform: translate(0, 0);
 }
 
 .journey-check {
@@ -520,24 +493,24 @@
 }
 
 .journey[data-state="success"] .journey-check {
-  animation: journey-pop 520ms cubic-bezier(0.34, 1.56, 0.64, 1) 220ms forwards;
+  animation: journey-pop 460ms cubic-bezier(0.34, 1.56, 0.64, 1) 260ms forwards;
 }
 
-@keyframes journey-drive {
+@keyframes journey-fly {
   0% {
-    transform: translate(0, 0);
+    transform: translate(0, 0) rotate(0deg);
   }
-  50% {
-    transform: translate(226px, -17px);
+  /* Lifts off the roof. */
+  16% {
+    transform: translate(26px, -40px) rotate(-7deg);
   }
+  /* Climbs over the road. */
+  52% {
+    transform: translate(168px, -76px) rotate(-4deg);
+  }
+  /* Falls towards the kerb. */
   100% {
-    transform: translate(452px, -34px);
-  }
-}
-
-@keyframes journey-dash {
-  to {
-    stroke-dashoffset: -52;
+    transform: translate(310px, -46px) rotate(0deg);
   }
 }
 
@@ -584,32 +557,26 @@
 
   /* …except the loader. Collapsing its dismissal to 0.001ms would make it
      flash for a single frame, which is more jarring than a fade. Stop the
-     ambient loops instead and let the real timings run. */
-  .loader-taxi,
-  .loader-dashes,
-  .loader-sweep,
-  .loader-glow,
-  .loader-ellipsis::after {
+     ambient movement instead and let the real timings run. */
+  .loader-taxi {
     animation: none !important;
+    transform: translate3d(300px, 0, 0);
   }
 
   .loader-ellipsis::after {
     content: "...";
+    animation: none !important;
   }
 
   [data-site-loader] {
     animation-duration: 500ms !important;
   }
 
-  /* …and the submission scene. Freezing the taxi at its starting point would
-     make "sending" look identical to "ready", so it is parked mid-road
-     instead: a static, legible sign that the message is in transit. */
-  .journey[data-state="sending"] .journey-taxi {
+  /* …and the submission scene. A frozen envelope at the start of its flight
+     would be indistinguishable from "ready", so it is held just off the roof:
+     a static, legible sign that the message is in transit. */
+  .journey[data-state="sending"] .journey-envelope {
     animation: none !important;
-    transform: translate(226px, -17px);
-  }
-
-  .journey[data-state="sending"] .journey-road-dash {
-    animation: none !important;
+    transform: translate(168px, -76px);
   }
 }

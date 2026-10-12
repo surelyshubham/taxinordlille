@@ -622,11 +622,13 @@ export function QuoteForm({
         )}
       />
 
-      {/* State: sending. The taxi leaves while the request is in flight. */}
-      {submitting ? (
+      {/* States: sending and error. The taxi never moves — the envelope does — and
+          it only goes inside the office once the server has confirmed. On
+          failure it comes back to the roof, so nothing looks delivered. */}
+      {submitting || state.status === "error" ? (
         <div role="status" aria-live="polite" className="surface-card rounded-2xl p-5">
-          <MessageJourney state="sending" />
-          <p className="sr-only">{labels.submitting}</p>
+          <MessageJourney state={submitting ? "sending" : "error"} />
+          <p className="sr-only">{submitting ? labels.submitting : labels.errorTitle}</p>
         </div>
       ) : null}
 

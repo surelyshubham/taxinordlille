@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
+import { Taxi } from "@/components/brand/taxi";
 import { cn } from "@/lib/utils";
 
 /**
@@ -217,31 +218,32 @@ export function SiteLoader({
       >
         <LoaderScene />
 
-        <p className="mt-9 font-[family-name:var(--font-display)] text-xl tracking-[0.34em] text-gold-200 uppercase sm:text-2xl">
+        <p className="mt-7 font-[family-name:var(--font-display)] text-lg tracking-[0.42em] text-gold-200 uppercase sm:text-xl">
           Taxi Nord Lille
         </p>
 
-        <p className="loader-ellipsis mt-3 text-sm tracking-[0.2em] text-content-subtle uppercase">
+        <p className="loader-ellipsis mt-4 text-[0.7rem] tracking-[0.34em] text-content-subtle uppercase">
           {labels.label}
         </p>
 
         <span className="sr-only">{labels.sr}</span>
-
-        {/* Indeterminate sweep — a fake determinate percentage would be a lie. */}
-        <div className="mt-8 h-px w-40 overflow-hidden bg-line sm:w-56">
-          <div className="loader-sweep h-full w-1/3 bg-gradient-to-r from-transparent via-gold-400 to-transparent" />
-        </div>
       </div>
     </>
   );
 }
 
-/** The medallion over a road with a taxi running along it. */
+/**
+ * The emblem above a night street, with the car crossing it.
+ *
+ * The road recedes to a vanishing point so the car reads as being *somewhere*
+ * rather than sliding along a stripe. There is no progress bar: a bar that
+ * cannot report a real percentage is decoration pretending to be information,
+ * and the moving car is already the honest signal that something is happening.
+ */
 function LoaderScene() {
   return (
-    <div className="relative w-full max-w-sm px-8" aria-hidden="true">
-      <div className="relative mx-auto w-32 sm:w-40">
-        <div className="loader-glow" />
+    <div className="w-full" aria-hidden="true">
+      <div className="relative mx-auto w-24 sm:w-28">
         {/*
           A plain <img>, deliberately. This emblem is the loader's focal point
           and sits above the fold of the very first paint; routing it through
@@ -259,66 +261,44 @@ function LoaderScene() {
       </div>
 
       <svg
-        viewBox="0 0 320 104"
-        className="mt-8 w-full overflow-visible"
+        viewBox="0 0 640 200"
+        className="mt-10 block w-full max-w-2xl"
         fill="none"
         aria-hidden="true"
       >
         <defs>
-          <linearGradient id="loader-beam" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stopColor="#d4b668" stopOpacity="0" />
-            <stop offset="1" stopColor="#d4b668" stopOpacity="0.22" />
-          </linearGradient>
-          <linearGradient id="loader-road" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stopColor="#d4b668" stopOpacity="0.1" />
-            <stop offset="0.5" stopColor="#d4b668" stopOpacity="0.3" />
-            <stop offset="1" stopColor="#d4b668" stopOpacity="0.1" />
-          </linearGradient>
+          <radialGradient id="loader-glow" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stopColor="#d4b668" stopOpacity="0.14" />
+            <stop offset="1" stopColor="#d4b668" stopOpacity="0" />
+          </radialGradient>
+          <radialGradient id="loader-vignette" cx="0.5" cy="0.5" r="0.62">
+            <stop offset="0.5" stopColor="#050404" stopOpacity="0" />
+            <stop offset="1" stopColor="#050404" stopOpacity="0.9" />
+          </radialGradient>
         </defs>
 
-        {/* Headlight wash trailing the car. */}
-        <path d="M0 78h320" stroke="url(#loader-beam)" strokeWidth="26" strokeLinecap="round" />
+        {/* Far bank: rooftops, barely separated from the sky. */}
+        <g className="fill-[#0a0908]">
+          <path d="M0 118h70v-26h34v-16h26v42h58v-34h40v-20h30v54h64v-30h44v-22h32v52h72v-38h40v-18h30v56h70v46H0z" />
+        </g>
 
+        {/* Warm air above the street. */}
+        <ellipse cx="320" cy="150" rx="300" ry="110" fill="url(#loader-glow)" />
+
+        {/* Road, receding. */}
+        <path d="M0 164h640v36H0z" className="fill-[#0c0a07]" />
+        <path d="M0 164h640" className="stroke-gold-700/30" strokeWidth="1" />
+        <path d="M120 200 268 164M520 200 372 164" className="stroke-gold-600/18" strokeWidth="1" />
+
+        {/* The car, crossing left to right. It fades in and out at the kerb so
+            the loop never shows its seam. */}
         <g className="loader-taxi">
-          {/* Side profile, matching the car in the medallion. */}
-          <path
-            d="M6 74V64c0-5 3-8 8-9l14-3 11-11c2-2 5-3 8-3h20c4 0 7 1 10 4l9 9 12 3c5 1 8 4 8 9v11Z"
-            className="fill-gold-400/12 stroke-gold-400"
-            strokeWidth="1.7"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M41 43l9-9c2-2 4-3 7-3h17c3 0 6 1 8 3l7 8Z"
-            className="fill-gold-200/14 stroke-gold-300/60"
-            strokeWidth="1.3"
-            strokeLinejoin="round"
-          />
-          <path d="M49 43h38" className="stroke-gold-300/45" strokeWidth="1.1" />
-          {/* Headlight. */}
-          <circle cx="112" cy="66" r="2.6" className="fill-gold-100" />
-          <rect x="2" y="62" width="7" height="5" rx="2" className="fill-gold-200/70" />
-          {/* Wheels. */}
-          <circle cx="30" cy="75" r="8" className="fill-canvas stroke-gold-400" strokeWidth="1.7" />
-          <circle cx="30" cy="75" r="3" className="fill-gold-400/55" />
-          <circle cx="92" cy="75" r="8" className="fill-canvas stroke-gold-400" strokeWidth="1.7" />
-          <circle cx="92" cy="75" r="3" className="fill-gold-400/55" />
-          {/* Ground shadow. */}
-          <ellipse cx="61" cy="85" rx="44" ry="3" className="fill-gold-500/12" />
+          <g transform="translate(-190 198) scale(0.62)">
+            <Taxi />
+          </g>
         </g>
 
-        {/* Road surface and centre line. */}
-        <path d="M0 86h320" stroke="url(#loader-road)" strokeWidth="1.4" />
-        <g className="loader-dashes">
-          {[0, 40, 80, 120, 160, 200, 240, 280].map((x) => (
-            <path
-              key={x}
-              d={`M${x} 86h20`}
-              className="stroke-gold-500/45"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-            />
-          ))}
-        </g>
+        <rect width="640" height="200" fill="url(#loader-vignette)" />
       </svg>
     </div>
   );

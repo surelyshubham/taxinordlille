@@ -433,21 +433,31 @@ console.log("\nform-submission animation");
   // The state is data, not a timer. If the scene could animate on its own it
   // could show a delivery the server never confirmed.
   check(
-    "scene is driven by the three lifecycle states",
-    ["idle", "sending", "success"].every((state) => journeySource.includes(`"${state}"`)),
+    "scene is driven by the four lifecycle states",
+    ["idle", "sending", "success", "error"].every((state) => journeySource.includes(`"${state}"`)),
   );
   check("scene contains no timer of its own", !journeySource.includes("setTimeout") && !journeySource.includes("setInterval"));
   check("scene is decorative to assistive technology", journeySource.includes('aria-hidden="true"'));
   check("office is signed with the exact business name", journeySource.includes("Taxi Nord Lille"));
 
+  // The taxi is parked in every state. Only the envelope travels, and it is
+  // held at the kerb until the server confirms — so it can only ever arrive
+  // once, and never on a loop that would replay the arrival.
+  check("the taxi is never animated", !layoutCss.includes("journey-taxi"));
+  check("the envelope carries the flight", layoutCss.includes(".journey-envelope"));
   check("the check is hidden until success", /\.journey-check\s*\{[^}]*opacity:\s*0/.test(layoutCss));
-  check("the taxi only drives while sending", layoutCss.includes('[data-state="sending"] .journey-taxi'));
-  check("the taxi only arrives on success", layoutCss.includes('[data-state="success"] .journey-taxi'));
   check("the arrival indicator only animates on success", /\[data-state="success"\]\s*\.journey-check/.test(layoutCss));
+  check(
+    "the flight is a single pass, never a loop",
+    /\[data-state="sending"\]\s*\.journey-envelope\s*\{[^}]*animation:[^;]*forwards/.test(layoutCss) &&
+      !/\[data-state="sending"\][^}]*infinite/.test(layoutCss),
+  );
+  check("the envelope goes inside only on success", /\[data-state="success"\]\s*\.journey-envelope\s*\{[^}]*transform/.test(layoutCss));
+  check("a failure returns the envelope to the roof", /\[data-state="error"\]\s*\.journey-envelope\s*\{[^}]*transform:\s*translate\(0,\s*0\)/.test(layoutCss));
 
-  check("contact form shows the scene while sending", contactForm.includes('<MessageJourney state="sending"'));
+  check("contact form shows the scene while sending", contactForm.includes('<MessageJourney state={submitting ? "sending" : "error"}'));
   check("contact form shows the scene on success", contactForm.includes('<MessageJourney state="success"'));
-  check("quote form shows the scene while sending", quoteForm.includes('<MessageJourney state="sending"'));
+  check("quote form shows the scene while sending", quoteForm.includes('<MessageJourney state={submitting ? "sending" : "error"}'));
   check("quote form shows the scene on success", quoteForm.includes('<MessageJourney state="success"'));
   check(
     "a form only reveals its success frame from the success state",
