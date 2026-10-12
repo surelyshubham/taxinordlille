@@ -5,11 +5,6 @@ import { ArrowRight, Info, MapPin, Plane, Route, TrainFront } from "lucide-react
 
 import { CtaBanner } from "@/components/site/cta-banner";
 import { PageHero } from "@/components/site/page-hero";
-import {
-  ArtAeroport,
-  ArtGare,
-  ArtRoute,
-} from "@/components/brand/artwork";
 import { Photo, PhotoScrim } from "@/components/site/photo";
 import type { PhotoName } from "@/lib/photos";
 import { Button } from "@/components/ui/button";
@@ -174,24 +169,16 @@ const ICONS: Record<ServiceType, typeof TrainFront> = {
   longue_distance: Route,
 };
 
-/** One engraved scene per service, so each page is visually identifiable. */
-const SCENES: Record<ServiceType, typeof ArtGare> = {
-  gare: ArtGare,
-  aeroport: ArtAeroport,
-  longue_distance: ArtRoute,
-};
-
 /**
- * Where a real photograph of the place exists, it is used in place of the
- * engraving — a visitor choosing a station transfer is better served by
- * seeing the hall they will be collected from than a drawing of a train.
- *
- * Long-distance journeys have no such place, so that page keeps its artwork
- * rather than borrowing an unrelated picture of Lille.
+ * Every service page opens on its own photograph: the station the passenger is
+ * collected from, the airport they land at, or the motorway that carries them
+ * out of Lille. Even long-distance journeys have a real subject here — the A1
+ * at Lesquin — rather than a drawing standing in for a place.
  */
-const SCENE_PHOTOS: Partial<Record<ServiceType, PhotoName>> = {
-  gare: "gare-flandres-hall",
-  aeroport: "lesquin-interieur",
+const SCENE_PHOTOS: Record<ServiceType, PhotoName> = {
+  gare: "gare-flandres-facade",
+  aeroport: "lesquin-acces",
+  longue_distance: "route-a1-lesquin",
 };
 
 /** Resolve a URL slug to one of the three known services. */
@@ -246,7 +233,6 @@ export default async function ServiceDetailPage({
 
   const content = getServiceContent(dict, key);
   const Icon = ICONS[key];
-  const Scene = SCENES[key];
   const scenePhoto = SCENE_PHOTOS[key];
 
   const crumbs = [
@@ -298,20 +284,17 @@ export default async function ServiceDetailPage({
 
         {/* The place itself, bleeding off the bottom edge of the masthead. */}
         <div className="pointer-events-none -mb-px mt-12 hidden lg:block">
-          {scenePhoto ? (
-            <div className="relative h-64 w-full overflow-hidden rounded-2xl border border-line">
-              <Photo
-                name={scenePhoto}
-                locale={locale}
-                sizes="(min-width: 1024px) 1200px, 100vw"
-                width={1600}
-                height={900}
-              />
-              <PhotoScrim from="bottom" />
-            </div>
-          ) : (
-            <Scene className="h-56 w-full object-cover opacity-80" />
-          )}
+          <div className="relative h-64 w-full overflow-hidden rounded-2xl border border-line">
+            <Photo
+              name={scenePhoto}
+              locale={locale}
+              sizes="(min-width: 1024px) 1200px, 100vw"
+              width={1600}
+              height={900}
+              className="absolute inset-0"
+            />
+            <PhotoScrim from="bottom" />
+          </div>
         </div>
       </PageHero>
 

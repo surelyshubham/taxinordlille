@@ -1,8 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, PhoneCall } from "lucide-react";
 
-import { ArtHero } from "@/components/brand/artwork";
 import { Photo, PhotoScrim } from "@/components/site/photo";
 import { HeroQuoteCard } from "@/components/site/hero-quote-card";
 import { Button } from "@/components/ui/button";
@@ -30,31 +28,23 @@ export function HomeHero({
 
   return (
     <section className="relative overflow-hidden pt-[4.5rem]">
-      {/* Lille at night behind the engraving — the belfry photograph, then the
-          drawn skyline over it for the engraved linework, then the scrims that
-          pull everything back into the canvas so the headline stays legible. */}
+      {/* The photograph is the anchor of the section, so it gets one
+          photograph and nothing layered over it beyond the scrims that keep
+          the headline readable. The dark band at the foot hands the section
+          over to the page. */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0">
-          <Photo
-            name="lille-beffroi"
-            locale={locale}
-            sizes="100vw"
-            width={2000}
-            height={1125}
-            priority
-          />
-        </div>
-        <PhotoScrim from="full" />
-        <ArtHero className="absolute inset-x-0 top-0 h-full w-full opacity-25" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_-10%,rgba(212,182,104,0.10),transparent_65%)]" />
-        <div className="absolute inset-0 bg-gradient-to-b from-canvas/40 via-canvas/70 to-canvas" />
-        <Image
-          src="/brand/logo-mark.png"
-          alt=""
-          width={256}
-          height={215}
-          className="absolute -right-24 top-40 w-[34rem] max-w-none opacity-[0.05]"
+        <Photo
+          name="berline-noire"
+          locale={locale}
+          sizes="100vw"
+          width={2000}
+          height={1125}
+          priority
+          className="absolute inset-0"
         />
+        <PhotoScrim from="left" />
+        <PhotoScrim from="bottom" className="lg:hidden" />
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-canvas" />
       </div>
 
       <div className="relative mx-auto max-w-7xl px-5 pb-20 pt-14 sm:px-8 sm:pb-24 sm:pt-20 lg:pb-32 lg:pt-28">

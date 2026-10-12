@@ -15,25 +15,30 @@ const UA =
   "TaxiNordLille-SiteBuilder/1.0 (https://taxinordlille.fr; contact@taxinordlille.fr)";
 
 /**
- * Hand-picked candidates from `find-images.mjs`, then narrowed by eye in
- * `contact-sheet.mjs`: only places the business actually serves, and only
- * frames whose subject survives a 16:9 crop.
+ * Hand-picked candidates, narrowed by eye in `scripts/contact-sheet.mjs`.
+ *
+ * The rule is simple and is applied the same way to every slot: use a
+ * photograph of the real place, or of the real vehicle, that a passenger would
+ * recognise — never borrow an unrelated picture just to fill a frame. Two of
+ * the four subjects below therefore keep a photograph of the actual place
+ * served (Lille-Flandres, Lille-Lesquin) even though the frame shows the
+ * terminal rather than a car; that gap is recorded in the README instead of
+ * being papered over.
  */
 const WANTED = [
+  // The homepage hero. A professional black taxi, matching the executive
+  // salons the business drives. There is no free-licensed frame of a black taxi
+  // in Lille, so this one is a Paris taxi — see the README for the gap.
+  { file: "Lexus ES 300h F Sport AXZH10 Black Taxi (3).jpg", slug: "berline-noire" },
+  // The railway-station service: the real Lille-Flandres, the station served.
   { file: "Lille gare lille flandres facade.jpg", slug: "gare-flandres-facade" },
-  { file: "Lille-Flandres station 2.jpg", slug: "gare-flandres-hall" },
-  { file: "Gare Lille Europe R01.jpg", slug: "gare-europe" },
-  { file: "Beffroi cci lille.jpg", slug: "lille-beffroi" },
-  { file: "Vieille bourse Lille.jpg", slug: "lille-vieille-bourse" },
-  { file: "Lille-Lesquin International Airport - Control tower - 1.jpg", slug: "lesquin-tour" },
-  {
-    file: "Lille-Lesquin International Airport - Terminal - Inside - 1.jpg",
-    slug: "lesquin-interieur",
-  },
+  // The airport service: the access road of the real Lille-Lesquin airport.
   {
     file: "Lille-Lesquin International Airport - Terminal - Outside - 4.jpg",
     slug: "lesquin-acces",
   },
+  // Long-distance journeys: the A1 at Lesquin, the motorway out of Lille.
+  { file: "Lesquin - Motorway A1 - 1.jpg", slug: "route-a1-lesquin" },
 ];
 
 /** Licences we are willing to ship, with the page that explains them. */

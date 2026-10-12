@@ -13,7 +13,7 @@
  * images were cropped, desaturated and tone-mapped — the CC BY-SA attribution
  * requirement to indicate changes.
  */
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import sharp from "sharp";
 
@@ -32,20 +32,20 @@ const WIDTHS = [640, 1024, 1600, 2000];
 /**
  * Per-photo crop, as fractions of the source.
  *
- * `top` is generous because every one of these shots has a blown-out sky
+ * `top` is generous because several of these shots have a blown-out sky
  * filling the upper third; keeping it would leave a flat bright band sitting
- * behind the page's gold type. `gravity: "attention"` then picks the busiest
- * part of the remaining region, which is the building rather than the road.
+ * behind the page's gold type. Vehicle frames keep a wider band so the car is
+ * never clipped, and `gravity: "attention"` then picks the subject within the
+ * remaining region.
  */
 const CROPS = {
+  // A three-quarter view of a black saloon: keep most of the height so the
+  // whole car survives the 16:9 fit.
+  "berline-noire": { top: 0.12, height: 0.78 },
   "gare-flandres-facade": { top: 0.24, height: 0.56 },
-  "gare-flandres-hall": { top: 0.2, height: 0.66 },
-  "gare-europe": { top: 0.3, height: 0.54 },
-  "lesquin-tour": { top: 0.14, height: 0.7 },
-  "lesquin-interieur": { top: 0.18, height: 0.62 },
-  "lesquin-acces": { top: 0.2, height: 0.64 },
-  "lille-beffroi": { top: 0.12, height: 0.72 },
-  "lille-vieille-bourse": { top: 0.16, height: 0.68 },
+  "lesquin-acces": { top: 0.18, height: 0.66 },
+  // A motorway is mostly sky and tarmac; the middle band carries the road.
+  "route-a1-lesquin": { top: 0.22, height: 0.62 },
 };
 
 /**
@@ -71,6 +71,9 @@ function grade(image) {
 }
 
 async function main() {
+  // Start from a clean slate: a derivative left behind from a photograph that
+  // is no longer in the catalogue would keep shipping to production.
+  rmSync(OUT_DIR, { recursive: true, force: true });
   mkdirSync(OUT_DIR, { recursive: true });
 
   const credits = JSON.parse(readFileSync("scripts/photo-credits.json", "utf8"));

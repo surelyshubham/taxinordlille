@@ -12,21 +12,20 @@ import manifest from "./credits.json";
  * can never reference a photo that was not generated.
  *
  * Alt text describes the photograph and nothing else — no marketing claims, no
- * invented detail. Every frame is a real place the business serves.
+ * invented detail. Every frame is of a real place the business serves, or of
+ * the real vehicle type it drives; where no free-licensed frame of the exact
+ * place existed, the substitution is recorded in the credits and the README
+ * rather than hidden.
  */
 
 /** Natural aspect ratio of every processed crop (16:9). */
 export const PHOTO_RATIO = 9 / 16;
 
 export type PhotoName =
+  | "berline-noire"
   | "gare-flandres-facade"
-  | "gare-flandres-hall"
-  | "gare-europe"
-  | "lesquin-tour"
-  | "lesquin-interieur"
   | "lesquin-acces"
-  | "lille-beffroi"
-  | "lille-vieille-bourse";
+  | "route-a1-lesquin";
 
 export type PhotoEntry = {
   /** What the frame shows, per language. */
@@ -36,46 +35,19 @@ export type PhotoEntry = {
 };
 
 export const PHOTOS: Record<PhotoName, PhotoEntry> = {
+  "berline-noire": {
+    alt: {
+      fr: "Berline taxi noire devant une façade parisienne",
+      en: "Black saloon taxi in front of a Parisian facade",
+    },
+    place: { fr: "Taxi — Paris", en: "Taxi — Paris" },
+  },
   "gare-flandres-facade": {
     alt: {
       fr: "Façade en pierre de la gare Lille-Flandres, avec son horloge et sa nef vitrée",
       en: "Stone facade of Lille-Flandres station, with its clock and glazed train shed",
     },
     place: { fr: "Gare Lille-Flandres", en: "Lille-Flandres station" },
-  },
-  "gare-flandres-hall": {
-    alt: {
-      fr: "Nef ferroviaire de la gare Lille-Flandres, arcs de verre et quais sous la verrière",
-      en: "Train shed at Lille-Flandres station, glass arches and platforms beneath the roof",
-    },
-    place: { fr: "Gare Lille-Flandres", en: "Lille-Flandres station" },
-  },
-  "gare-europe": {
-    alt: {
-      fr: "Passerelle vitrée au-dessus de la place de la gare Lille-Europe",
-      en: "Glazed footbridge above the forecourt of Lille-Europe station",
-    },
-    place: { fr: "Gare Lille-Europe", en: "Lille-Europe station" },
-  },
-  "lesquin-tour": {
-    alt: {
-      fr: "Tour de contrôle de l'aéroport de Lille-Lesquin",
-      en: "Control tower at Lille-Lesquin airport",
-    },
-    place: {
-      fr: "Aéroport Lille-Lesquin",
-      en: "Lille-Lesquin airport",
-    },
-  },
-  "lesquin-interieur": {
-    alt: {
-      fr: "Hall d'enregistrement de l'aéroport de Lille-Lesquin, barrières d'attente",
-      en: "Check-in hall at Lille-Lesquin airport, with queue barriers",
-    },
-    place: {
-      fr: "Aéroport Lille-Lesquin",
-      en: "Lille-Lesquin airport",
-    },
   },
   "lesquin-acces": {
     alt: {
@@ -87,19 +59,12 @@ export const PHOTOS: Record<PhotoName, PhotoEntry> = {
       en: "Lille-Lesquin airport",
     },
   },
-  "lille-beffroi": {
+  "route-a1-lesquin": {
     alt: {
-      fr: "Beffroi de Lille illuminé, aperçu depuis la place aux Oignons",
-      en: "Lille's belfry lit up at night, seen from Place aux Oignons",
+      fr: "Autoroute A1 à hauteur de Lesquin, dans le Nord",
+      en: "The A1 motorway at Lesquin, northern France",
     },
-    place: { fr: "Lille — beffroi", en: "Lille — belfry" },
-  },
-  "lille-vieille-bourse": {
-    alt: {
-      fr: "Place de la Vieille Bourse et ses façades ornées, à Lille",
-      en: "Place de la Vieille Bourse and its ornate facades, Lille",
-    },
-    place: { fr: "Lille — Vieille Bourse", en: "Lille — Vieille Bourse" },
+    place: { fr: "Autoroute A1 — Lesquin", en: "A1 motorway — Lesquin" },
   },
 };
 

@@ -372,11 +372,24 @@ après toute évolution de la marque.
 
 ### Photographies sous licence
 
-Les photographies représentent uniquement des lieux réellement desservis :
-gares de Lille, aéroport de Lille-Lesquin et monuments lillois. Elles
-proviennent de Wikimedia Commons et sont publiées sous licence libre. Le
-traitement les recadre, les désature et les étalonne vers la palette noire et
-or afin qu'elles restent lisibles derrière le texte doré.
+Chaque sujet de la vitrine est une photographie réelle, publiée sous licence
+libre sur Wikimedia Commons. **Aucune icône, illustration filaire, pastille ni
+dégradé ne sert d'image principale.** Le site en publie exactement quatre, une
+par sujet, jamais réutilisées d'une carte à l'autre :
+
+| Emplacement | Sujet | Licence |
+| --- | --- | --- |
+| Héros | Berline noire (Lexus ES 300h) en service taxi | CC BY-SA 4.0 |
+| Carte et page « Gare » | Façade de la gare Lille-Flandres | CC BY-SA |
+| Carte et page « Aéroport » | Voie d'accès à l'aéroport de Lille-Lesquin | CC BY-SA |
+| Carte et page « Longue distance » | Autoroute A1 à Lesquin (Nord) | CC BY-SA 3.0 |
+
+Le traitement les recadre, les désature et les étalonne vers la palette noire et
+or afin qu'elles restent lisibles derrière le texte doré. Elles sont déclinées
+en AVIF, WebP et JPEG sur quatre largeurs, avec leurs dimensions intrinsèques,
+afin qu'aucune image ne provoque de décalage de mise en page à l'arrivée. Un
+texte alternatif décrit la scène ; il est vide lorsque l'image est purement
+décorative.
 
 ```bash
 npm run photos          # téléchargement + traitement complet
@@ -390,6 +403,15 @@ retéléchargées à tout moment. Les dérivés publiés se trouvent dans
 `src/lib/photos/credits.json`. La page `/credits-photographiques`, liée dans
 le pied de page et le sitemap, indique l'auteur, la licence, la source et les
 modifications apportées à chaque image.
+
+**Limite documentée.** Il n'existe pas, sous licence libre, de photographie
+d'un taxi noir à Lille, ni d'un taxi noir devant la gare Lille-Flandres ou le
+terminal de Lille-Lesquin. Pour ne pas recourir à une illustration de
+remplacement, le héros utilise une berline noire en service taxi (photographiée
+à Paris) et les cartes gare/aéroport montrent les lieux réels de Lille que le
+client fréquentera. La page de crédits et cette note consignent le manque plutôt
+que de le masquer ; toute photo locale sous licence libre pourra remplacer ces
+fichiers via `fetch-photos.mjs` sans toucher aux composants.
 
 Pour contrôler visuellement un nouveau traitement avant publication :
 
@@ -415,8 +437,7 @@ locales Europe/Paris en UTC **avec gestion de l'heure d'été** (CET et CEST),
 assainissement HTML (scripts, gestionnaires d'événements, `javascript:`),
 ancres de sommaire, slugs accentués, protection contre l'injection de formule
 CSV et routage des langues. Il vérifie aussi la cohérence entre le catalogue
-photographique, les crédits de licence et les fichiers générés, ainsi que
-l'accord entre la page et le composant sur le cookie du chargeur.
+photographique, les crédits de licence et les fichiers générés.
 
 ---
 

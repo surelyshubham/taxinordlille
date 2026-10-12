@@ -1,18 +1,20 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
+import { Photo, PhotoScrim } from "@/components/site/photo";
 import { Section, SectionHeading } from "@/components/ui/primitives";
 import { SERVICES } from "@/lib/content/services";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import { localizedHref, type Locale } from "@/lib/i18n/config";
+import type { PhotoName } from "@/lib/photos";
 
 /**
  * Service cards.
  *
- * Rather than repeating the medallion three times, each card is identified by a
- * large engraved line mark drawn in the same gold as the emblem, on a brass-lit
- * ground. The medallion itself stays reserved for the hero, the coverage
- * section and the footer, where it reads as the brand signature.
+ * Each card opens on its own photograph — the station, the airport, the road —
+ * so a visitor choosing a service sees the place or the journey they are buying.
+ * The three pictures are deliberately different; the small engraved icon stays
+ * as an accent only, never as the primary image.
  */
 export function ServicesSection({
   locale,
@@ -21,30 +23,41 @@ export function ServicesSection({
   locale: Locale;
   dict: Dictionary;
 }) {
-  const items = [
+  const items: {
+    key: "gare" | "aeroport" | "longue_distance";
+    href: string;
+    title: string;
+    tagline: string;
+    body: string;
+    cta: string;
+    photo: PhotoName;
+  }[] = [
     {
-      key: "gare" as const,
+      key: "gare",
       href: localizedHref(locale, `/services/${dict.services.gare.slug}`),
       title: dict.services.gare.name,
       tagline: dict.services.gare.tagline,
       body: dict.services.gare.short,
       cta: dict.common.viewService,
+      photo: "gare-flandres-facade",
     },
     {
-      key: "aeroport" as const,
+      key: "aeroport",
       href: localizedHref(locale, `/services/${dict.services.aeroport.slug}`),
       title: dict.services.aeroport.name,
       tagline: dict.services.aeroport.tagline,
       body: dict.services.aeroport.short,
       cta: dict.common.viewService,
+      photo: "lesquin-acces",
     },
     {
-      key: "longue_distance" as const,
+      key: "longue_distance",
       href: localizedHref(locale, `/services/${dict.services.longe.slug}`),
       title: dict.services.longe.name,
       tagline: dict.services.longe.tagline,
       body: dict.services.longe.short,
       cta: dict.common.viewService,
+      photo: "route-a1-lesquin",
     },
   ];
 
@@ -66,43 +79,23 @@ export function ServicesSection({
                 className="group surface-card edge-top relative flex flex-col overflow-hidden rounded-2xl transition-all duration-300 hover:border-gold-700/60"
               >
                 <div className="relative h-44 overflow-hidden border-b border-line">
-                  <div
-                    aria-hidden="true"
-                    className="absolute inset-0"
-                    style={{
-                      backgroundImage:
-                        "radial-gradient(ellipse 80% 70% at 50% 0%, rgba(212,182,104,0.14), transparent 70%), linear-gradient(180deg, #17140e, #0b0a08)",
-                    }}
+                  <Photo
+                    name={item.photo}
+                    locale={locale}
+                    sizes="(min-width: 1024px) 33vw, 100vw"
+                    width={1024}
+                    height={576}
+                    className="absolute inset-0 transition-transform duration-700 group-hover:scale-[1.04]"
                   />
-                  {/* Fine engraved arcs, echoing the medallion's concentric rings. */}
-                  <svg
-                    aria-hidden="true"
-                    viewBox="0 0 400 176"
-                    className="absolute inset-0 size-full"
-                    fill="none"
-                  >
-                    {[36, 58, 80, 102, 124].map((r) => (
-                      <circle
-                        key={r}
-                        cx="200"
-                        cy="230"
-                        r={r}
-                        stroke="currentColor"
-                        strokeWidth="0.75"
-                        className="text-gold-400/25"
-                      />
-                    ))}
-                  </svg>
+                  <PhotoScrim from="bottom" />
 
+                  {/* A small engraved icon keeps the family resemblance to the
+                      medallion without standing in for the photograph. */}
                   {Icon ? (
-                    <span className="absolute left-1/2 top-1/2 inline-flex size-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl border border-gold-700/40 bg-canvas/60 text-gold-300 backdrop-blur-sm transition-transform duration-500 group-hover:scale-105">
-                      <Icon aria-hidden="true" className="size-9" strokeWidth={1.25} />
+                    <span className="absolute left-5 top-5 inline-flex size-10 items-center justify-center rounded-xl border border-gold-700/40 bg-canvas/70 text-gold-400 backdrop-blur-sm">
+                      <Icon aria-hidden="true" className="size-5" />
                     </span>
                   ) : null}
-
-                  <span className="absolute left-5 top-5 inline-flex size-10 items-center justify-center rounded-xl border border-gold-700/40 bg-canvas/70 text-gold-400 backdrop-blur-sm lg:hidden">
-                    {Icon ? <Icon aria-hidden="true" className="size-5" /> : null}
-                  </span>
                 </div>
 
                 <div className="flex flex-1 flex-col p-7">
