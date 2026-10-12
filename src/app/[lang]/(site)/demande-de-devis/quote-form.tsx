@@ -4,12 +4,13 @@ import * as React from "react";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { AlertCircle, CheckCircle2, PhoneCall, Send } from "lucide-react";
+import { AlertCircle, PhoneCall, Send } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { CheckboxField, Input, Select, Textarea } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/primitives";
+import { MessageJourney } from "@/components/site/message-journey";
 import type { Locale } from "@/lib/i18n/config";
 import { todayInputValue } from "@/lib/utils";
 import {
@@ -180,17 +181,16 @@ export function QuoteForm({
 
   if (state.status === "success") {
     return (
-      <div className="surface-panel rounded-2xl p-8 text-center sm:p-12">
-        <span className="mx-auto inline-flex size-16 items-center justify-center rounded-full border border-gold-600/60 bg-gold-400/10 text-gold-300">
-          <CheckCircle2 aria-hidden="true" className="size-8" />
-        </span>
+      <div
+        role="status"
+        className="surface-panel rounded-2xl p-8 text-center sm:p-12"
+      >
+        <MessageJourney state="success" />
 
         <h2 className="mt-7 text-2xl">{labels.successTitle}</h2>
 
         <p className="mx-auto mt-4 max-w-md text-[0.975rem] leading-relaxed text-content-muted">
-          {labels.successTemplate
-            .replace("{name}", String(form.getValues("fullName")))
-            .replace("{ref}", state.reference)}
+          {labels.successTemplate.replace("{ref}", state.reference)}
         </p>
 
         <p className="mx-auto mt-4 flex max-w-md items-start justify-center gap-2 text-sm leading-relaxed text-content-subtle">
@@ -621,6 +621,14 @@ export function QuoteForm({
           </div>
         )}
       />
+
+      {/* State: sending. The taxi leaves while the request is in flight. */}
+      {submitting ? (
+        <div role="status" aria-live="polite" className="surface-card rounded-2xl p-5">
+          <MessageJourney state="sending" />
+          <p className="sr-only">{labels.submitting}</p>
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-4">
         <Button type="submit" size="lg" disabled={submitting} className="w-full sm:w-auto">

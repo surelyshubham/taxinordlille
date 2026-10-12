@@ -27,6 +27,8 @@ import {
 import { csvCell, formatDateTime, fromLocalInputValue, slugify, toCsv } from "../src/lib/utils";
 import { PHOTOS, isPhotoName, photoFallbackWidth, photoWidths, type PhotoName } from "../src/lib/photos";
 import credits from "../src/lib/photos/credits.json";
+import fr from "../src/lib/i18n/dictionaries/fr.json";
+import en from "../src/lib/i18n/dictionaries/en.json";
 import { existsSync, readFileSync } from "node:fs";
 
 const layoutCss = readFileSync(
@@ -411,6 +413,59 @@ console.log("\npage-transition loader");
   check("download links ignored", loaderSource.includes('hasAttribute("download")'));
   check("modifier-clicks ignored", loaderSource.includes("event.metaKey"));
   check("reduced motion stills the ambient loops", layoutCss.includes(".loader-taxi") && layoutCss.includes("prefers-reduced-motion"));
+}
+
+console.log("\nform-submission animation");
+{
+  const journeySource = readFileSync(
+    new URL("../src/components/site/message-journey.tsx", import.meta.url),
+    "utf8",
+  );
+  const contactForm = readFileSync(
+    new URL("../src/app/[lang]/(site)/contact/contact-form.tsx", import.meta.url),
+    "utf8",
+  );
+  const quoteForm = readFileSync(
+    new URL("../src/app/[lang]/(site)/demande-de-devis/quote-form.tsx", import.meta.url),
+    "utf8",
+  );
+
+  // The state is data, not a timer. If the scene could animate on its own it
+  // could show a delivery the server never confirmed.
+  check(
+    "scene is driven by the three lifecycle states",
+    ["idle", "sending", "success"].every((state) => journeySource.includes(`"${state}"`)),
+  );
+  check("scene contains no timer of its own", !journeySource.includes("setTimeout") && !journeySource.includes("setInterval"));
+  check("scene is decorative to assistive technology", journeySource.includes('aria-hidden="true"'));
+  check("office is signed with the exact business name", journeySource.includes("Taxi Nord Lille"));
+
+  check("the check is hidden until success", /\.journey-check\s*\{[^}]*opacity:\s*0/.test(layoutCss));
+  check("the taxi only drives while sending", layoutCss.includes('[data-state="sending"] .journey-taxi'));
+  check("the taxi only arrives on success", layoutCss.includes('[data-state="success"] .journey-taxi'));
+  check("the arrival indicator only animates on success", /\[data-state="success"\]\s*\.journey-check/.test(layoutCss));
+
+  check("contact form shows the scene while sending", contactForm.includes('<MessageJourney state="sending"'));
+  check("contact form shows the scene on success", contactForm.includes('<MessageJourney state="success"'));
+  check("quote form shows the scene while sending", quoteForm.includes('<MessageJourney state="sending"'));
+  check("quote form shows the scene on success", quoteForm.includes('<MessageJourney state="success"'));
+  check(
+    "a form only reveals its success frame from the success state",
+    contactForm.includes('state.status === "success"') && quoteForm.includes('state.status === "success"'),
+  );
+  check("both submit buttons are disabled while sending", (contactForm.match(/disabled=\{submitting\}/g) ?? []).length >= 1 && (quoteForm.match(/disabled=\{submitting\}/g) ?? []).length >= 1);
+}
+
+console.log("\nform success copy");
+{
+  check("contact success names the business exactly", fr.contact.successTitle.includes("Taxi Nord Lille"));
+  check("contact success does not promise a time", !/\d+\s*(h\b|heure)/i.test(fr.contact.successTitle + fr.contact.successBody));
+  check("quote success heading matches the brief", fr.quote.successTitle === "Votre demande est bien arrivée.");
+  check("quote success keeps the reference placeholder", fr.quote.successBody.includes("{ref}"));
+  check("quote success says the fare will be confirmed", fr.quote.successBody.includes("confirmer le tarif"));
+  check("quote success repeats that the trip is not confirmed", fr.quote.successNotConfirmed.length > 0);
+  check("english mirrors the contact success", en.contact.successTitle.includes("Taxi Nord Lille"));
+  check("english mirrors the quote reference placeholder", en.quote.successBody.includes("{ref}"));
 }
 
 console.log(`\n${passed} passed, ${failed} failed\n`);

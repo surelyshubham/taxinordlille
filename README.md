@@ -440,6 +440,30 @@ Il vit au niveau applicatif (capture des clics sur les liens internes et
 il n'ajoute aucun délai artificiel. `prefers-reduced-motion` fige les boucles
 décoratives tout en gardant un fondu court.
 
+### Animation de soumission de formulaire
+
+Les formulaires de contact et de devis partagent une scène `MessageJourney`
+(svg léger, sans bibliothèque d'animation) : une enveloppe posée sur le toit
+d'un petit taxi « Taxi Nord Lille », une route bordée d'une ligne médiane qui
+défile et un bâtiment de bureaux dont l'enseigne porte exactement le nom
+« Taxi Nord Lille ». L'état est piloté par les données, pas par un minuteur :
+
+- **Prêt** (`idle`) : le taxi est à l'arrêt, le formulaire est intact.
+- **Envoi** (`sending`) : le taxi part, le bouton est désactivé (pas de double
+  envoi), la ligne médiane défile.
+- **Succès** (`success`) : le taxi est arrivé, l'enveloppe a disparu et une
+  coche sobre apparaît — **uniquement après confirmation d'écriture en base**.
+- **Échec** : aucune animation d'arrivée ni message de succès ; l'erreur
+  s'affiche, la saisie est conservée et la nouvelle tentative reste possible.
+
+L'enregistrement en base précède la notification : l'animation ne peut donc pas
+annoncer un message que le serveur n'a pas stocké. La scène ne contient aucune
+donnée personnelle et est décorative (`aria-hidden`) ; les messages de succès et
+d'erreur, eux, sont annoncés (`role="status"` / `role="alert"`). Sous
+`prefers-reduced-motion`, le taxi se gare à mi-chemin, immobile mais visible :
+l'état reste lisible sans mouvement. Ce composant est distinct du chargeur de
+transition, qui ne réagit qu'aux changements de page.
+
 ### Ce que couvrent les tests
 
 `npm run test` vérifie la logique qui ne dépend pas d'une base de données :
@@ -452,7 +476,9 @@ CSV et routage des langues. Il vérifie aussi la cohérence entre le catalogue
 photographique, les crédits de licence et les fichiers générés ; l'accord entre
 la page et le composant sur le cookie du chargeur ; ainsi que la durée minimale
 et le plafond du chargeur et les filtres qui l'empêchent de se déclencher sur
-le bruit.
+le bruit. Il vérifie enfin que la scène de soumission n'a aucun minuteur
+propre, que sa coche reste invisible hors succès et que les textes de succès
+reprennent exactement la référence et l'avertissement de non-confirmation.
 
 ---
 

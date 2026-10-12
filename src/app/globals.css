@@ -481,6 +481,81 @@
   }
 }
 
+/* --------------------------------------------------------------------------
+   Form-submission scene (taxi to office)
+   --------------------------------------------------------------------------
+   `data-state` on the wrapper is the only input: the form sets it from its
+   real request lifecycle, and these rules style the parked, driving and
+   delivered frames. There is no timer here, so the animation can never claim
+   a delivery the server has not confirmed. */
+
+.journey-taxi {
+  transform: translate(0, 0);
+}
+
+.journey[data-state="sending"] .journey-taxi {
+  animation: journey-drive 2.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.journey[data-state="sending"] .journey-road-dash {
+  animation: journey-dash 0.9s linear infinite;
+}
+
+.journey[data-state="success"] .journey-taxi {
+  transform: translate(452px, -34px);
+}
+
+.journey-envelope {
+  transition: opacity 300ms ease-out;
+}
+
+.journey[data-state="success"] .journey-envelope {
+  opacity: 0;
+}
+
+.journey-check {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.journey[data-state="success"] .journey-check {
+  animation: journey-pop 520ms cubic-bezier(0.34, 1.56, 0.64, 1) 220ms forwards;
+}
+
+@keyframes journey-drive {
+  0% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(226px, -17px);
+  }
+  100% {
+    transform: translate(452px, -34px);
+  }
+}
+
+@keyframes journey-dash {
+  to {
+    stroke-dashoffset: -52;
+  }
+}
+
+@keyframes journey-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 @keyframes fade-up {
   from {
     opacity: 0;
@@ -524,5 +599,17 @@
 
   [data-site-loader] {
     animation-duration: 500ms !important;
+  }
+
+  /* …and the submission scene. Freezing the taxi at its starting point would
+     make "sending" look identical to "ready", so it is parked mid-road
+     instead: a static, legible sign that the message is in transit. */
+  .journey[data-state="sending"] .journey-taxi {
+    animation: none !important;
+    transform: translate(226px, -17px);
+  }
+
+  .journey[data-state="sending"] .journey-road-dash {
+    animation: none !important;
   }
 }

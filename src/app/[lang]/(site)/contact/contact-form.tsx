@@ -3,12 +3,13 @@
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { CheckCircle2, Send } from "lucide-react";
+import { Send } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input, Select, Textarea } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/primitives";
+import { MessageJourney } from "@/components/site/message-journey";
 import type { Locale } from "@/lib/i18n/config";
 import {
   contactMessageSchema,
@@ -97,13 +98,14 @@ export function ContactForm({ labels }: { labels: Labels }) {
 
   if (state.status === "success") {
     return (
-      <div className="surface-panel rounded-2xl p-8 text-center sm:p-12">
-        <span className="mx-auto inline-flex size-16 items-center justify-center rounded-full border border-gold-600/60 bg-gold-400/10 text-gold-300">
-          <CheckCircle2 aria-hidden="true" className="size-8" />
-        </span>
+      <div
+        role="status"
+        className="surface-panel rounded-2xl p-8 text-center sm:p-12"
+      >
+        <MessageJourney state="success" />
         <h3 className="mt-7 text-2xl">{labels.successTitle}</h3>
         <p className="mx-auto mt-4 max-w-md text-[0.975rem] leading-relaxed text-content-muted">
-          {labels.successTemplate.replace("{name}", String(form.getValues("fullName") || ""))}
+          {labels.successTemplate}
         </p>
       </div>
     );
@@ -222,6 +224,15 @@ export function ContactForm({ labels }: { labels: Labels }) {
           />
         )}
       </Field>
+
+      {/* State: sending. The taxi sets off while the request is in flight;
+          the form stays on screen so nothing the visitor typed is lost. */}
+      {submitting ? (
+        <div role="status" aria-live="polite" className="surface-card rounded-2xl p-5">
+          <MessageJourney state="sending" />
+          <p className="sr-only">{labels.submitting}</p>
+        </div>
+      ) : null}
 
       <Button type="submit" size="lg" disabled={submitting}>
         {submitting ? (
