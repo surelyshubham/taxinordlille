@@ -1,5 +1,30 @@
 # Taxi Nord Lille
 
+**Bilingual taxi-service website and quote-management application**, built with Next.js, TypeScript, PostgreSQL, and Drizzle.
+
+[Public website](https://taxinordlille.vercel.app) · [Developer profile](https://github.com/surelyshubham) · [Portfolio](https://www.surelyshubham.com)
+
+## English project overview
+
+The application helps a taxi operator collect journey enquiries and manage follow-up. Visitors request a quote; the operator confirms the price and trip details. It does not automatically price, book, or charge for a journey.
+
+The source includes:
+
+- French and English public routes, service pages, contact and quote forms.
+- An admin workspace for enquiries, messages, settings, and blog publishing.
+- PostgreSQL records, versioned Drizzle migrations, and shared Zod validation.
+- Server-side admin sessions, request throttling, and HTML sanitization.
+- Email/WhatsApp notification integrations with recorded delivery outcomes. Enquiries are stored before notifications are attempted.
+- Documented unit checks for business logic, plus lint, type-check, and build commands.
+
+For an implementation review, start with [the schema](src/lib/db/schema.ts), [quote validation](src/lib/validation/quote.ts), [admin sessions](src/lib/auth/session.ts), [notification handling](src/lib/notifications/index.ts), and [the logic checks](scripts/test-logic.ts).
+
+The detailed French guide below covers setup, configuration, architecture, deployment, and the owner information still needed before launch. The checks listed here exist in the repository; this documentation update does not claim a new application test run or a production certification. See [handsoff.md](handsoff.md) for this update's scope.
+
+---
+
+## Guide technique en français
+
 Site vitrine et outil de gestion de demandes de devis pour **Taxi Nord Lille** —
 gares, aéroports et longues distances depuis Lille.
 
@@ -701,4 +726,4 @@ testez une demande de devis de bout en bout.
 
 ## Licence
 
-Code privé. Tous droits réservés.
+Code propriétaire. Tous droits réservés. La visibilité publique de ce dépôt ne constitue pas une licence open source.
